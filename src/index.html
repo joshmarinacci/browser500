@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>cool example</title>
+</head>
+<style type='text/css'>
+    canvas {
+        width: 800px;
+        height: 400px;
+        image-rendering: optimizeSpeed;
+        /*image-rendering: -moz-crisp-edges;*/
+        /*image-rendering: -webkit-optimize-contrast;*/
+        /*image-rendering: -o-crisp-edges;*/
+        /*image-rendering: crisp-edges;*/
+        /*-ms-interpolation-mode: nearest-neighbor;*/
+    }
+</style>
+<body>
+<canvas width='400' height='200'></canvas>
+<script type='module'>
+    import {
+        extract_styles, layout,
+        parse,
+        parse_styles, render
+    } from './parser'
+    let html1 = `
+  <html>
+  <body>
+  Greetings Earthling. I have found a
+  solution to your world's energy problems. I am going to blow it up.
+  </body>
+  </html>
+  `
+    let canvas = document.getElementsByTagName('canvas')[0]
+    let ctx =canvas.getContext('2d')
+    ctx.font = '12pt sans-serif'
+    ctx.imageSmoothingEnabled = false
+    let dom_tree = parse(html1)
+    let css_strings = extract_styles(dom_tree)
+    let styleset = parse_styles(css_strings)
+    let layout_tree = layout(dom_tree,styleset,canvas)
+    render(layout_tree,canvas)
+</script>
+</body>
+</html>
