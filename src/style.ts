@@ -1,4 +1,3 @@
-// pull out CSS strings
 import {BElement, BInsets, BlockStyle, BorderStyle, BText, TextStyle} from "./common";
 import ohm from "ohm-js";
 
@@ -11,7 +10,7 @@ const default_stylesheet = String.raw`
     background-color:white;
     padding: 5;
     margin: 5;
-    border: 1px solid black;
+    border: 0px solid black;
 }
 `
 
@@ -79,6 +78,26 @@ semantics.addOperation('rules', {
     RuleItem:(name,_1,value,_2) => ({ name: name.rules(), value: value.rules() }),
 })
 
+function get_prop_value(p: CSSProp):any {
+    // console.log("prop is", r.selector, p.name, '=', p.value)
+    if (p.name === 'margin')    return BInsets.uniform(parseInt(p.value))
+    if (p.name === 'padding')   return BInsets.uniform(parseInt(p.value))
+    if (p.name === 'font-size') return parseInt(p.value)
+    if (p.name === 'color')     return p.value
+    if (p.name === 'display')   return p.value
+    if (p.name === 'background-color') return p.value
+    if (p.name === 'border') {
+        let parts = p.value.split(" ");
+        let v:BorderStyle = {
+            color:parts[2],
+            thick:BInsets.uniform(parseInt(parts[0]))
+        }
+        return v
+    }
+    console.warn("missing handler for css prop",p)
+    return p.value
+}
+
 export class BStyleSet {
     private def_text: TextStyle;
     private def_block: BlockStyle;
@@ -87,6 +106,7 @@ export class BStyleSet {
     constructor() {
         this.rules = []
         this.def_block = {
+            display:"block",
             padding: BInsets.uniform(0),
             margin: BInsets.uniform(0),
             "background-color": 'white',
@@ -102,7 +122,7 @@ export class BStyleSet {
     }
 
     lookup_block_style(name: string): BlockStyle {
-        let names = ['background-color', 'border', 'padding', 'margin']
+        let names = ['display','background-color', 'border', 'padding', 'margin']
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         console.log(`FINAL block style for ${name}:`,style_object)
@@ -124,37 +144,7 @@ export class BStyleSet {
             // console.log("possible rule",r)
             r.props.filter(p => p.name === prop_name)
                 .forEach((p => {
-                    // console.log("prop is", r.selector, p.name, '=', p.value)
-                    if (p.name === 'margin') {
-                        val = BInsets.uniform(parseInt(p.value))
-                        return
-                    }
-                    if (p.name === 'padding') {
-                        val = BInsets.uniform(parseInt(p.value))
-                        return
-                    }
-                    if (p.name === 'font-size')        {
-                        val = parseInt(p.value)
-                        return
-                    }
-                    if (p.name === 'color')            {
-                        val = p.value
-                        return
-                    }
-                    if (p.name === 'background-color') {
-                        val = p.value
-                        return
-                    }
-                    if (p.name === 'border') {
-                        let parts = p.value.split(" ");
-                        let v:BorderStyle = {
-                            color:parts[2],
-                            thick:BInsets.uniform(parseInt(parts[0]))
-                        }
-                        val = v
-                        return
-                    }
-                    console.log("didn't match",p.name,p.value)
+                    val = get_prop_value(p)
                 }))
         })
         return val

@@ -48,6 +48,7 @@ export class BInsets {
 }
 
 export type BlockStyle = {
+    display:"block"|"inline",
     'background-color': BColor,
     border: BorderStyle,
     padding: BInsets,
