@@ -1,5 +1,5 @@
 // pull out CSS strings
-import {BElement, BInsets, BlockStyle, BText, log, TextStyle} from "./common";
+import {BElement, BInsets, BlockStyle, BorderStyle, BText, TextStyle} from "./common";
 import ohm from "ohm-js";
 
 
@@ -20,10 +20,10 @@ CSS {
     RuleSet = Rule*
     Rule = ident "{" RuleBody "}"
     RuleBody = RuleItem*
-    RuleItem = PropName ":" PropValue ";"
+    RuleItem = PropName ":" propValue ";"
     ident = ("*" | letter | digit)+
     PropName = letter (letter | "-")*
-    PropValue = (~";" any)+
+    propValue = (~";" any)+
 }
 `
 
@@ -75,7 +75,7 @@ semantics.addOperation('rules', {
         return r
     },
     PropName:(a,b) => a.rules() + b.rules().join(""),
-    PropValue:(a) => a.rules().join(""),
+    propValue:(a) => a.rules().join(""),
     RuleItem:(name,_1,value,_2) => ({ name: name.rules(), value: value.rules() }),
 })
 
@@ -102,33 +102,17 @@ export class BStyleSet {
     }
 
     lookup_block_style(name: string): BlockStyle {
-        console.log("looking up style for element", name)
         let names = ['background-color', 'border', 'padding', 'margin']
-        //lookup each property for the element
         let style_object = {}
-        names.forEach(prop_name => {
-            let value: any = this.lookup_property_value(prop_name, name)
-            console.log("FINAL block style",prop_name,'=',value)
-            style_object[prop_name] = value
-        })
-        console.log("FINAL",style_object)
+        names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
+        console.log(`FINAL block style for ${name}:`,style_object)
         return style_object as BlockStyle
-        // see if have that property for that element name
-        // if not, get the property for the * name
-        // if not, load from the default
-        //group into a single chunk of styles
-        //optionally cache it
     }
 
     lookup_text_style(name: string): TextStyle {
         let names = ['font-size','color'];
         let style_object = {}
-        names.forEach(prop_name => {
-            let value: any = this.lookup_property_value(prop_name, name)
-            console.log("FINAL text style",prop_name,'=',value)
-            style_object[prop_name] = value
-        })
-        console.log("FINAL",style_object)
+        names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         return style_object as TextStyle
     }
 
@@ -161,11 +145,18 @@ export class BStyleSet {
                         val = p.value
                         return
                     }
+                    if (p.name === 'border') {
+                        let parts = p.value.split(" ");
+                        let v:BorderStyle = {
+                            color:parts[2],
+                            thick:BInsets.uniform(parseInt(parts[0]))
+                        }
+                        val = v
+                        return
+                    }
                     console.log("didn't match",p.name,p.value)
-                    // val = p.value
                 }))
         })
-        // log("got", val)
         return val
     }
 
