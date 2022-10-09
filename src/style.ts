@@ -9,6 +9,8 @@ function log(...args: any[]) {
 const default_stylesheet = String.raw`
 * {
     font-size: 10px;
+    font-weight: normal;
+    font-style: normal;
     display:block;
     color:black;
     background-color:white;
@@ -87,6 +89,8 @@ function get_prop_value(p: CSSProp):any {
     if (p.name === 'margin')    return BInsets.uniform(parseInt(p.value))
     if (p.name === 'padding')   return BInsets.uniform(parseInt(p.value))
     if (p.name === 'font-size') return parseInt(p.value)
+    if (p.name === 'font-weight') return p.value
+    if (p.name === 'font-style') return p.value
     if (p.name === 'color')     return p.value
     if (p.name === 'display')   return p.value
     if (p.name === 'background-color') return p.value
@@ -122,6 +126,8 @@ export class BStyleSet {
         this.def_text = {
             color: 'black',
             'font-size': 10,
+            "font-weight":'normal',
+            "font-style":'normal',
         }
     }
 
@@ -134,7 +140,7 @@ export class BStyleSet {
     }
 
     lookup_text_style(name: string): TextStyle {
-        let names = ['font-size','color'];
+        let names = ['color','font-size','font-weight','font-style'];
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         return style_object as TextStyle
@@ -169,13 +175,6 @@ function parse_style_block(input: string, styles: BStyleSet) {
         log("selector",rule.selector,rule.props)
         styles.append_style(rule)
     })
-    // change styles to cascade
-    // request style for p should return a style object for p that falls back to the style object for body and then to html and then to the default
-    // css properties can inherit from the parent
-    // others can inherit from the generic element
-    // elements inherit from generic element
-    // if element doesn't have a property at all, then get it from the parent
-    // BlockStyle represents the fully calculated styles
 }
 
 // css string to CSS tree

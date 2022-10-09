@@ -45,7 +45,7 @@ function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
     line.runs.forEach(run => {
         log("drawing run",run.text)
         c.fillStyle = run.style.color
-        c.font = `${run.style["font-size"]}px sans-serif`
+        run.set_font(c)
         c.fillText(run.text,
             line.position.x + run.position.x,
             line.position.y + run.position.y

@@ -56,6 +56,8 @@ export type BlockStyle = {
 }
 export type TextStyle = {
     'font-size': number,
+    'font-weight':"normal"|"bold"
+    'font-style':"normal"|"italic"
     color: BColor,
 }
 
@@ -130,12 +132,23 @@ export type LayoutBox = {
     children: LayoutChild[],
     style: BlockStyle,
 }
-export type RunBox = {
-    type:'run',
-    position: BPoint,
-    size: BSize,
-    text:string,
-    style:TextStyle,
+export class RunBox{
+    type:'run'
+    position: BPoint
+    size: BSize
+    text:string
+    style:TextStyle
+
+    constructor(text:string,position: BPoint, style: TextStyle) {
+        this.position = position
+        this.size = new BSize(10,10)
+        this.text = text
+        this.style = style
+    }
+
+    set_font(ctx: CanvasRenderingContext2D) {
+        ctx.font = `${this.style["font-style"]} ${this.style["font-weight"]} ${this.style["font-size"]}px sans-serif`
+    }
 }
 export type LineBox = {
     type: 'line',

@@ -130,24 +130,18 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
         }
         // log(`input text "${text}"`)
         // log("text style",text_style)
-        let current_run:RunBox = {
-            type: "run",
-            position: new BPoint(curr_w,0),
-            text: "",
-            size: new BSize(10,10),
-            style: text_style,
-        }
+        let current_run:RunBox = new RunBox("",new BPoint(curr_w,0),text_style)
         let chunks = new WhitespaceIterator(text)
         while (true) {
             let res = chunks.next()
             if(res.done) break;
             let chunk = res.value.trim()
             if(chunk === '') continue;
-            ctx.font = `${current_run.style["font-size"]}px sans-serif`
-            let text_metrics = ctx.measureText(chunk)
-            if (current_line.position.x + curr_w + text_metrics.width < avail_w) {
+            current_run.set_font(ctx)
+            let chunk_size = ctx.measureText(chunk)
+            if (current_line.position.x + curr_w + chunk_size.width < avail_w) {
                 current_run.text  += ' ' + chunk
-                curr_w += text_metrics.width + ctx.measureText(' ').width
+                curr_w += chunk_size.width + ctx.measureText(' ').width
             } else {
                 // log("wrapping")
                 current_line.size = new BSize(curr_w, line_height)
@@ -155,7 +149,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
                 // log("ADDING RUN",current_run.text,current_run.position)
                 current_line.runs.push(current_run)
                 lines.push(current_line)
-                curr_w = text_metrics.width
+                curr_w = chunk_size.width
                 curr_w = 0
                 current_line = {
                     type:'line',
@@ -163,13 +157,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
                     runs:[],
                     size: new BSize(avail_w,20)
                 }
-                current_run = {
-                    type:'run',
-                    position: new BPoint(curr_w,0),
-                    text:chunk,
-                    size: new BSize(10,10),
-                    style: text_style
-                }
+                current_run = new RunBox(chunk,new BPoint(curr_w,0),text_style)
             }
         }
         // log(`leftover text "${current_run.text}"`)
