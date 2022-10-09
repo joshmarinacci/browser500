@@ -38,9 +38,9 @@
     let ctx =canvas.getContext('2d')
     ctx.font = '12pt sans-serif'
     ctx.imageSmoothingEnabled = false
-    console.log("input is",html1)
+    // console.log("input is",html1)
     let dom_tree = parse_html(html1)
-    console.log("dom tree is",dom_tree)
+    // console.log("dom tree is",dom_tree)
     let css_strings = extract_styles(dom_tree)
     let styles = parse_styles(css_strings)
     let layout_tree = layout(dom_tree,styles,canvas)

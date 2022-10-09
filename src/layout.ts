@@ -5,12 +5,12 @@ import {
     BPoint,
     BRect,
     BSize,
-    BStyleSet,
     BText,
     LayoutBox,
     LineBox,
     TextStyle
 } from "./common";
+import {BStyleSet} from "./style";
 // sub-line box spans with colored text
 
 function log(...args: any[]) {
@@ -109,7 +109,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
     let text_lines:string[] = elem.children.map((ch:BNode) => ((ch as BText).text))
     let text_style:TextStyle = styles.lookup_text_style(body_box.element.name)
     let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
-    let line_height = text_style.fontSize*1.3
+    let line_height = text_style["font-size"]*1.3
     let curr_text = ""
     let curr_pos = insets.top_left()
     let curr_w = 0

@@ -21,7 +21,7 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
     let insets = root.style.margin.add(root.style.border.thick)
     let rect = root.size.toRect().subtract_inset(insets)
     //draw background
-    fill_rect(c, rect, root.style.background)
+    fill_rect(c, rect, root.style["background-color"])
     //draw border
     stroke_rect(c, rect, root.style.border.thick.top, root.style.border.color)
     //draw children
@@ -37,8 +37,8 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
 
 function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
     c.fillStyle = line.style.color
-    c.font = `${line.style.fontSize}px sans-serif`
-    c.fillText(line.text, line.position.x, line.position.y + line.style.fontSize)
+    c.font = `${line.style["font-size"]}px sans-serif`
+    c.fillText(line.text, line.position.x, line.position.y + line.style["font-size"])
     if (DEBUG.TEXT.LINES) {
         c.strokeStyle = 'black'
         c.lineWidth = 1;

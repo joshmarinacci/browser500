@@ -10,39 +10,6 @@ export type BText = {
     readonly text: string
 }
 
-export class BStyleSet {
-    block: Map<string, BlockStyle>
-    text: Map<string, TextStyle>
-    private def_text: TextStyle;
-    private def_block: BlockStyle;
-
-    constructor() {
-        this.block = new Map()
-        this.text = new Map()
-        this.def_block = {
-            padding: BInsets.uniform(0),
-            margin: BInsets.uniform(0),
-            background: 'white',
-            border: {
-                color: 'black',
-                thick: BInsets.uniform(0)
-            }
-        }
-        this.def_text = {
-            color: 'black',
-            fontSize: 10,
-        }
-    }
-
-    lookup_block_style(name: string): BlockStyle {
-        return this.block.has(name) ? this.block.get(name) as BlockStyle : this.def_block
-    }
-
-    lookup_text_style(name: string): TextStyle {
-        return this.text.has(name) ? this.text.get(name) as TextStyle : this.def_text
-    }
-}
-
 export type BColor = string
 export type BorderStyle = {
     color: BColor,
@@ -81,13 +48,13 @@ export class BInsets {
 }
 
 export type BlockStyle = {
-    background: BColor,
+    'background-color': BColor,
     border: BorderStyle,
     padding: BInsets,
     margin: BInsets
 }
 export type TextStyle = {
-    fontSize: number,
+    'font-size': number,
     color: BColor,
 }
 
