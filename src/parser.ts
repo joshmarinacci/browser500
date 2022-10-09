@@ -1,208 +1,23 @@
-import ohm from "ohm-js"
 import {
-    BColor,
     BElement,
     BInsets,
-    BlockStyle,
     BNode,
     BPoint,
     BRect,
     BSize,
     BStyleSet,
     BText,
+    LayoutBox,
+    LineBox,
     TextStyle
 } from "./common";
 // sub-line box spans with colored text
 // noinspection JSUnusedLocalSymbols
 
-const raw_grammar = String.raw`
-HTML {
-  TokenStream = Token+
-  Token = Open | text | Close | Empty
-  la = "<"
-  ra = ">"
-  ident = letter (letter | digit)*
-  Open = la ident Atts ra
-  Close = la "/" ident ra
-  Empty = la ident "/" ra
-  text = (~la any)+
-  Atts = ListOf<Att," ">
-  q = "\'"
-  qq = "\""
-  Att = ident "=" AttVal
-  AttVal = q (~q any)+ q     -- q
-         | qq (~qq any)+ qq  -- qq
-}
-`
-
-export function parse(input:string):BElement {
-    type Open = {
-        type:'open',
-        value:string,
-        atts:{},
-    }
-    type Text = {
-        type:'text',
-        value:string,
-    }
-    type Close = {
-        type:'close'
-        value:string,
-    }
-    type Empty = {
-        type:'empty',
-        value:string,
-    }
-    type Token = | Open | Text | Close | Empty
-
-    const pairs_to_map = (pairs:string[][])=>{
-        let obj:Record<string, string> = {}
-        pairs.forEach(([k, v]) =>  obj[k] = v)
-        return obj
-    }
-
-    let grammar = ohm.grammar(raw_grammar)
-    let semantics = grammar.createSemantics()
-    semantics.addOperation('ast', {
-        _terminal() { return this.sourceString },
-        _iter:(...children) => children.map(c => c.ast()),
-        ident:(a,b) => a.ast() + b.ast().join(""),
-        Open:(_a,b,atts,_c) => ({type:"open",value:b.ast(), atts:atts.ast()}),
-        Atts:(a) => pairs_to_map(a.asIteration().children.map((ch:any) => ch.ast())),
-        Att:(name,_eq,value)=> [name.ast(),value.ast()],
-        AttVal_q :(_q1,value,_q2) => value.ast().join(""),
-        AttVal_qq:(_q1,value,_q2) => value.ast().join(""),
-        Close:(_a,_a1, b,_c) => ({type:"close",value:b.ast()}),
-        Empty:(_a,b,_c,_d)=>({type:"empty",value:b.ast()}),
-        text:(t) => ({type:"text",value:t.ast().join("")}),
-    })
-
-    function to_elements(tokens:Token[]):BNode {
-        let stack:BNode[] = []
-        let root:BElement = {
-            type:"element",
-            name:"root",
-            atts:{},
-            children:[]
-        }
-        stack.push(root)
-        for(let tok of tokens) {
-            // L.print("token",tok);
-            if(tok.type === "open") {
-                let elem:BElement = {
-                    type:"element",
-                    name:tok.value,
-                    atts:(tok as Open).atts,
-                    children:[]
-                }
-                let last = stack[stack.length-1] as BElement
-                if(last) last.children.push(elem)
-                stack.push(elem)
-            }
-            if(tok.type === "text") {
-                let text:BText = {
-                    type:"text",
-                    text:tok.value,
-                }
-                let last = stack[stack.length-1] as BElement
-                last.children.push(text)
-            }
-            if(tok.type === "close") {
-                // let last = stack[stack.length-1] as Element
-                stack.pop()
-            }
-            if(tok.type === 'empty') {
-                let elem:BElement = {
-                    type:"element",
-                    name:tok.value,
-                    atts:{},
-                    children:[]
-                }
-                let last = stack[stack.length-1] as BElement
-                if(last) last.children.push(elem)
-                stack.push(elem)
-            }
-        }
-        return stack[0]
-    }
-
-    let res1 = grammar.match(input)
-    if (res1.failed()) throw new Error("match failed")
-    let tokens:Token[] = semantics(res1).ast()
-    let root = to_elements(tokens)
-    let ch:BElement = (root as BElement).children[0] as BElement
-    log("final dom is",ch)
-    return ch
-}
-
-
-// pull out CSS strings
-export function extract_styles(_root:BElement):readonly string[] {
-    // let res:BElement[] = findElemenstByName(root,'style');
-    //find all style elements and pull out their
-    return [`body {
-              background-color: #ffffff;
-              color: #ff0000;
-            }`]
-}
-// css string to CSS tree
-export function parse_styles(_styles:string[]):BStyleSet {
-    let styles = new BStyleSet()
-    styles.block.set("html", {
-        background:'green',
-        border: {
-            color:'black',
-            thick: BInsets.uniform(2),
-        },
-        padding: BInsets.uniform(10),
-        margin: BInsets.uniform(0),
-    })
-    styles.block.set('body',{
-        background: 'white',
-        border: {
-            color:'black',
-            thick: BInsets.uniform(2),
-        },
-        padding: BInsets.uniform(10),
-        margin: BInsets.uniform(0),
-    })
-    styles.text.set('body',{
-        color: 'black',
-        fontSize: 15,
-    })
-    return styles
-}
-
-
-function sub_ins(size:BSize, ins:BInsets):BRect {
-    return new BRect(ins.left, ins.top,
-        size.w-ins.left-ins.right,size.h-ins.top-ins.bottom)
-}
-
-export type LayoutChild = {
-    type:'box'|'line'
-}
-export type LayoutBox = {
-    type:'box',
-    element:BElement,
-    position:BPoint,
-    size:BSize,
-    children:LayoutChild[],
-    style:BlockStyle,
-}
-export type LineBox = {
-    type:'line',
-    position:BPoint,
-    size:BSize,
-    text:string,
-    style:TextStyle,
-}
-
 
 function log(...args: any[]) {
     console.log("LOG",...args)
 }
-
 
 const make_box_from_style = (element: BElement, styles: BStyleSet, size: BSize, position: BPoint):LayoutBox => {
     let style = styles.lookup_block_style(element.name)
@@ -332,64 +147,6 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
     body_box.children = lines
     body_box.size = new BSize(body_box.size.w,curr_pos.y + line_height + insets.bottom);
     return body_box
-}
-
-const DEBUG = {
-    BLOCK:{
-        PADDING:false,
-    },
-    TEXT:{
-        LINES:false,
-    }
-}
-
-// layout tree to canvas
-export function render(root:LayoutBox, canvas:HTMLCanvasElement):void {
-    let c = canvas.getContext('2d') as CanvasRenderingContext2D
-    draw_box(c,root)
-}
-
-function draw_box(c:CanvasRenderingContext2D, root:LayoutBox):void {
-    c.save()
-    translate(c,root.position)
-    let insets = root.style.margin.add(root.style.border.thick)
-    let rect = root.size.toRect().subtract_inset(insets)
-    //draw background
-    fill_rect(c,rect,root.style.background)
-    //draw border
-    stroke_rect(c,rect,root.style.border.thick.top,root.style.border.color)
-    //draw children
-    root.children.forEach((ch) => {
-        if(ch.type === 'box') draw_box(c,ch as LayoutBox)
-        if(ch.type === 'line') draw_line(c, ch as LineBox)
-    })
-    if(DEBUG.BLOCK.PADDING) {
-        stroke_rect(c,sub_ins(root.size,root.style.margin.add(root.style.border.thick).add(root.style.padding)),2,'red')
-    }
-    c.restore()
-}
-function draw_line(c: CanvasRenderingContext2D, line:LineBox) {
-    c.fillStyle = line.style.color
-    c.font = `${line.style.fontSize}px sans-serif`
-    c.fillText(line.text,line.position.x,line.position.y + line.style.fontSize)
-    if(DEBUG.TEXT.LINES) {
-        c.strokeStyle = 'black'
-        c.lineWidth = 1;
-        c.strokeRect(line.position.x+0.5,line.position.y+0.5,line.size.w,line.size.h)
-    }
-}
-
-function translate(c: CanvasRenderingContext2D, position: BPoint) {
-    c.translate(position.x,position.y)
-}
-function stroke_rect(c:CanvasRenderingContext2D, rect:BRect, thick:number,color:BColor):void {
-    c.lineWidth = thick
-    c.strokeStyle = color
-    c.strokeRect(rect.x,rect.y,rect.w,rect.h)
-}
-function fill_rect(c:CanvasRenderingContext2D, rect:BRect, color:BColor):void {
-    c.fillStyle = color
-    c.fillRect(rect.x,rect.y,rect.w, rect.h)
 }
 
 // map mouse input -> layout tree

@@ -7,10 +7,11 @@
 <canvas width='400' height='200'></canvas>
 <script type='module'>
     import {
-        extract_styles, layout,
-        parse,
-        parse_styles, render
+        layout
     } from './parser'
+    import {render} from './render'
+    import {parse_html} from './html'
+    import {extract_styles, parse_styles} from './style'
     let html1 = `
   <html>
   <body>Greetings Earthling. I have found a
@@ -29,7 +30,7 @@
     ctx.font = '12pt sans-serif'
     ctx.imageSmoothingEnabled = false
     console.log("input is",html1)
-    let dom_tree = parse(html1)
+    let dom_tree = parse_html(html1)
     let css_strings = extract_styles(dom_tree)
     let styles = parse_styles(css_strings)
     let layout_tree = layout(dom_tree,styles,canvas)

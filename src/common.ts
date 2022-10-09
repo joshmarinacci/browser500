@@ -151,6 +151,29 @@ export class BRect {
     }
 }
 
+export type LayoutChild = {
+    type: 'box' | 'line'
+}
+export type LayoutBox = {
+    type: 'box',
+    element: BElement,
+    position: BPoint,
+    size: BSize,
+    children: LayoutChild[],
+    style: BlockStyle,
+}
+export type LineBox = {
+    type: 'line',
+    position: BPoint,
+    size: BSize,
+    text: string,
+    style: TextStyle,
+}
+
+export function log(...args: any[]) {
+    console.log("LOG",...args)
+}
+
 // html string to token stream
 // token stream to dom tree
 // @ts-ignore
