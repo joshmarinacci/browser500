@@ -1,18 +1,19 @@
 import ohm from "ohm-js"
+import {
+    BColor,
+    BElement,
+    BInsets,
+    BlockStyle,
+    BNode,
+    BPoint,
+    BRect,
+    BSize,
+    BStyleSet,
+    BText,
+    TextStyle
+} from "./common";
 // sub-line box spans with colored text
 // noinspection JSUnusedLocalSymbols
-
-export type BNode = BElement | BText
-export type BElement = {
-    readonly type:"element"
-    readonly name:string
-    readonly atts:Record<string, string>
-    children: BNode[]
-}
-export type BText = {
-    readonly type:"text"
-    readonly text:string
-}
 
 const raw_grammar = String.raw`
 HTML {
@@ -33,13 +34,6 @@ HTML {
          | qq (~qq any)+ qq  -- qq
 }
 `
-
-// html string to token stream
-// token stream to dom tree
-// @ts-ignore
-const elem = (name:string,atts:Record<string, string>,...children:BNode[]):BElement => ({ type:'element', name, atts,children})
-// @ts-ignore
-const text = (text:string):BText => ({type:'text', text})
 
 export function parse(input:string):BElement {
     type Open = {
@@ -142,76 +136,6 @@ export function parse(input:string):BElement {
 }
 
 
-export class BStyleSet {
-    block: Map<string,BlockStyle>
-    text:Map<string,TextStyle>
-    private def_text: TextStyle;
-    private def_block: BlockStyle;
-    constructor() {
-        this.block = new Map()
-        this.text = new Map()
-        this.def_block = {
-            padding:BInsets.uniform(0),
-            margin:BInsets.uniform(0),
-            background:'white',
-            border:{
-                color:'black',
-                thick:BInsets.uniform(0)
-            }
-        }
-        this.def_text = {
-            color:'black',
-            fontSize:10,
-        }
-    }
-    lookup_block_style(name: string):BlockStyle {
-        return this.block.has(name)?this.block.get(name) as BlockStyle:this.def_block
-    }
-    lookup_text_style(name: string):TextStyle {
-        return this.text.has(name) ? this.text.get(name) as TextStyle : this.def_text
-    }
-}
-export type BColor = string
-export type BorderStyle = {
-    color:BColor,
-    thick:BInsets,
-}
-export class BInsets{
-    top:number
-    right:number
-    bottom:number
-    left:number
-    constructor(top:number,right:number,bottom:number,left:number) {
-        this.top = top
-        this.right = right
-        this.bottom = bottom
-        this.left = left
-    }
-
-    static uniform(n: number):BInsets {
-        return new BInsets(n,n,n,n)
-    }
-
-    add(thick: BInsets) {
-        return new BInsets(
-            this.top + thick.top,
-            this.right + thick.right,
-            this.bottom + thick.bottom,
-            this.left + thick.left
-        )
-    }
-}
-export type BlockStyle = {
-    background:BColor,
-    border:BorderStyle,
-    padding:BInsets,
-    margin:BInsets
-}
-export type TextStyle = {
-    fontSize:number,
-    color:BColor,
-}
-
 // pull out CSS strings
 export function extract_styles(_root:BElement):readonly string[] {
     // let res:BElement[] = findElemenstByName(root,'style');
@@ -250,44 +174,9 @@ export function parse_styles(_styles:string[]):BStyleSet {
 }
 
 
-type BSize = {
-    w:number,
-    h:number,
-}
-class BRect {
-    readonly x:number
-    readonly y:number
-    readonly w:number
-    readonly h:number
-    constructor(x:number,y:number,w:number,h:number) {
-        this.x = x
-        this.y = y
-        this.w = w
-        this.h = h
-    }
-    position(): BPoint {
-        return new BPoint(this.x,this.y)
-    }
-    size(): BSize {
-        return {w:this.w, h:this.h}
-    }
-}
 function sub_ins(size:BSize, ins:BInsets):BRect {
     return new BRect(ins.left, ins.top,
         size.w-ins.left-ins.right,size.h-ins.top-ins.bottom)
-}
-
-class BPoint {
-    readonly x:number
-    readonly y:number
-    constructor(x:number, y:number) {
-        this.x = x
-        this.y = y
-    }
-
-    add(bPoint: BPoint) {
-        return new BPoint(this.x+bPoint.x,this.y+bPoint.y)
-    }
 }
 
 export type LayoutChild = {
@@ -315,9 +204,9 @@ function log(...args: any[]) {
 }
 
 
-const make_box_from_style = (element: BElement, styles: BStyleSet, size: BSize, min: BPoint):LayoutBox => {
+const make_box_from_style = (element: BElement, styles: BStyleSet, size: BSize, position: BPoint):LayoutBox => {
     let style = styles.lookup_block_style(element.name)
-    return { type:"box", position:min, size, element:element, children:[], style }
+    return { type:"box", position, size, element, children:[], style }
 }
 
 type ItRes = {
@@ -362,64 +251,20 @@ class WhitespaceIterator {
 
 }
 
-function make_line_box(text:string, size:BSize, position:BPoint, style:TextStyle):LineBox {
-    return { type: "line", text, position, size, style, }
-}
-function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
-    log("box_text_layout",elem.name,min,elem)
-    let body_box:LayoutBox = make_box_from_style(elem,styles,bounds.size(),min)
-    //get the text children as strings
-    let text_lines:string[] = elem.children.map((ch:BNode) => ((ch as BText).text))
-    console.log("text lines",text_lines)
-    let text_style:TextStyle = styles.lookup_text_style(body_box.element.name)
-
-    let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
-
-    let line_height = text_style.fontSize*1.3
-    let curr_text = ""
-    let curr_pos = new BPoint(insets.left,insets.top)
-    let curr_w = 0
-    let avail_w = bounds.w
-    let lines:LineBox[] = []
-    text_lines.forEach(text => {
-        let chunks = new WhitespaceIterator(text)
-        let res = chunks.next()
-        while (res.done === false) {
-            let m = ctx.measureText(res.value)
-            if(curr_pos.x + curr_w + m.width < avail_w) {
-                curr_text += ' ' + res.value
-                curr_w += m.width + ctx.measureText(' ').width
-            } else {
-                let size:BSize = {w:curr_w, h:line_height}
-                let line = make_line_box(curr_text, size, curr_pos, text_style)
-                lines.push(line)
-                curr_text = res.value
-                curr_w = m.width
-                curr_pos = new BPoint(insets.left,curr_pos.y+line_height)
-            }
-            res = chunks.next()
-        }
-        //handle the last line
-        if(curr_w > 0) {
-            let size:BSize = {w:curr_w, h:line_height}
-            lines.push(make_line_box(curr_text, size, curr_pos, text_style))
-            curr_text = ""
-            curr_pos = new BPoint(curr_w, curr_pos.y)
-            curr_w = 0
-        }
-    })
-    log('bottom of',elem.name,curr_pos)
-    body_box.children = lines
-    body_box.size = {w:body_box.size.w,h:curr_pos.y + line_height + insets.bottom};
-    return body_box
+// dom tree + css tree -> layout tree
+export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement):LayoutBox {
+    log("doing layout",element)
+    let canvas_size:BSize = new BSize(canvas.width, canvas.height)
+    let ctx:CanvasRenderingContext2D = canvas.getContext("2d");
+    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), ctx)
 }
 
 function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
     log("layout of",element.name,'at',position)
     let html_box:LayoutBox = make_box_from_style(element, styles, canvas_size, position)
     let inset = html_box.style.margin.add(html_box.style.border.thick).add(html_box.style.padding)
-    let body_bounds:BRect = sub_ins(html_box.size,inset)
-    let lowest:BPoint = new BPoint(body_bounds.x,body_bounds.y)
+    let body_bounds:BRect = html_box.size.toRect().subtract_inset(inset)
+    let lowest:BPoint = body_bounds.top_left()
     element.children.forEach((ch) => {
         if(ch.type === 'element') {
             let elem = ch as BElement
@@ -441,12 +286,52 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
     return html_box
 }
 
-// dom tree + css tree -> layout tree
-export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement):LayoutBox {
-    log("doing layout",element)
-    let canvas_size:BSize = { w: canvas.width, h: canvas.height}
-    let ctx:CanvasRenderingContext2D = canvas.getContext("2d");
-    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), ctx)
+function make_line_box(text:string, size:BSize, position:BPoint, style:TextStyle):LineBox {
+    return { type: "line", text, position, size, style, }
+}
+function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
+    log("box_text_layout",elem.name,min,elem)
+    let body_box:LayoutBox = make_box_from_style(elem,styles,bounds.size(),min)
+    //get the text children as strings
+    let text_lines:string[] = elem.children.map((ch:BNode) => ((ch as BText).text))
+    let text_style:TextStyle = styles.lookup_text_style(body_box.element.name)
+    let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
+    let line_height = text_style.fontSize*1.3
+    let curr_text = ""
+    let curr_pos = insets.top_left()
+    let curr_w = 0
+    let avail_w = bounds.w
+    let lines:LineBox[] = []
+    text_lines.forEach(text => {
+        let chunks = new WhitespaceIterator(text)
+        let res = chunks.next()
+        while (res.done === false) {
+            let m = ctx.measureText(res.value)
+            if(curr_pos.x + curr_w + m.width < avail_w) {
+                curr_text += ' ' + res.value
+                curr_w += m.width + ctx.measureText(' ').width
+            } else {
+                let size:BSize = new BSize(curr_w, line_height)
+                lines.push(make_line_box(curr_text, size, curr_pos, text_style))
+                curr_text = res.value
+                curr_w = m.width
+                curr_pos = new BPoint(insets.left,curr_pos.y+line_height)
+            }
+            res = chunks.next()
+        }
+        //handle the last line
+        if(curr_w > 0) {
+            let size:BSize = new BSize(curr_w, line_height)
+            lines.push(make_line_box(curr_text, size, curr_pos, text_style))
+            curr_text = ""
+            curr_pos = new BPoint(curr_w, curr_pos.y)
+            curr_w = 0
+        }
+    })
+    log('bottom of',elem.name,curr_pos)
+    body_box.children = lines
+    body_box.size = new BSize(body_box.size.w,curr_pos.y + line_height + insets.bottom);
+    return body_box
 }
 
 const DEBUG = {
@@ -458,7 +343,6 @@ const DEBUG = {
     }
 }
 
-
 // layout tree to canvas
 export function render(root:LayoutBox, canvas:HTMLCanvasElement):void {
     let c = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -467,9 +351,9 @@ export function render(root:LayoutBox, canvas:HTMLCanvasElement):void {
 
 function draw_box(c:CanvasRenderingContext2D, root:LayoutBox):void {
     c.save()
-    c.translate(root.position.x,root.position.y)
-    let ins = root.style.margin.add(root.style.border.thick)
-    let rect = sub_ins(root.size,ins)
+    translate(c,root.position)
+    let insets = root.style.margin.add(root.style.border.thick)
+    let rect = root.size.toRect().subtract_inset(insets)
     //draw background
     fill_rect(c,rect,root.style.background)
     //draw border
@@ -495,6 +379,9 @@ function draw_line(c: CanvasRenderingContext2D, line:LineBox) {
     }
 }
 
+function translate(c: CanvasRenderingContext2D, position: BPoint) {
+    c.translate(position.x,position.y)
+}
 function stroke_rect(c:CanvasRenderingContext2D, rect:BRect, thick:number,color:BColor):void {
     c.lineWidth = thick
     c.strokeStyle = color
