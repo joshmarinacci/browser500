@@ -375,7 +375,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
 
     let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
 
-    let line_height = 20
+    let line_height = text_style.fontSize*1.3
     let curr_text = ""
     let curr_pos = new BPoint(insets.left,insets.top)
     let curr_w = 0
@@ -408,16 +408,9 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
             curr_w = 0
         }
     })
+    log('bottom of',elem.name,curr_pos)
     body_box.children = lines
-
-    // body_box.children = text_lines.map((text, i) => {
-    //     let lh = text_style.fontSize*1.5
-    //     let position = { x: insets.left, y: i * lh + insets.top }
-    //     let size = { w: bounds.w - insets.left - insets.right, h: lh }
-    //     lowest = Math.max(lowest, position.y + size.h)
-    //     return { type: 'line', position: position, size: size, lineHeight: lh, text, style: text_style, }
-    // })
-    // body_box.size = {w:body_box.size.w,h:lowest + insets.bottom};
+    body_box.size = {w:body_box.size.w,h:curr_pos.y + line_height + insets.bottom};
     return body_box
 }
 
