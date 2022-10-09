@@ -137,7 +137,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
             if(res.done) break;
             let chunk = res.value.trim()
             if(chunk === '') continue;
-            current_run.set_font(ctx)
+            current_run.set_style(ctx)
             let chunk_size = ctx.measureText(chunk)
             if (current_line.position.x + curr_w + chunk_size.width < avail_w) {
                 current_run.text  += ' ' + chunk

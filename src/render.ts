@@ -16,8 +16,7 @@ const DEBUG = {
 
 // layout tree to canvas
 export function render(root: LayoutBox, canvas: HTMLCanvasElement): void {
-    let c = canvas.getContext('2d') as CanvasRenderingContext2D
-    draw_box(c, root)
+    draw_box(canvas.getContext('2d') as CanvasRenderingContext2D, root)
 }
 
 function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
@@ -41,24 +40,11 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
 }
 
 function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
-    log('drawing line',line)
     line.runs.forEach(run => {
-        log("drawing run",run.text)
-        c.fillStyle = run.style.color
-        run.set_font(c)
-        c.fillText(run.text,
-            line.position.x + run.position.x,
-            line.position.y + run.position.y
-            + run.style["font-size"])
-        if(DEBUG.TEXT.RUNS) {
-            c.strokeStyle = 'red'
-            c.lineWidth = 1
-            c.strokeRect(line.position.x + run.position.x + 0.5,
-                line.position.y + run.position.y + 0.5,
-                run.size.w,
-                run.size.h
-                )
-        }
+        run.set_style(c)
+        let pos = line.position.add(run.position)
+        c.fillText(run.text,pos.x,pos.y + run.style["font-size"])
+        if(DEBUG.TEXT.RUNS) stroke_rect(c,run.bounds().translate(line.position),1,'red');
     })
     if (DEBUG.TEXT.LINES) {
         c.strokeStyle = 'black'

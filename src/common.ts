@@ -119,6 +119,14 @@ export class BRect {
     top_left():BPoint {
         return new BPoint(this.x,this.y)
     }
+
+    static fromPosSiz(position: BPoint, size: BSize) {
+        return new BRect(position.x,position.y,size.w,size.h)
+    }
+
+    translate(position: BPoint) {
+        return new BRect(this.x + position.x , this.y + position.y, this.w,this.h)
+    }
 }
 
 export type LayoutChild = {
@@ -146,8 +154,13 @@ export class RunBox{
         this.style = style
     }
 
-    set_font(ctx: CanvasRenderingContext2D) {
+    set_style(ctx: CanvasRenderingContext2D) {
         ctx.font = `${this.style["font-style"]} ${this.style["font-weight"]} ${this.style["font-size"]}px sans-serif`
+        ctx.fillStyle = this.style.color
+    }
+
+    bounds() {
+        return BRect.fromPosSiz(this.position,this.size)
     }
 }
 export type LineBox = {
