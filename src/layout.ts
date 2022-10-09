@@ -8,6 +8,7 @@ import {
     BText,
     LayoutBox,
     LineBox,
+    RunBox,
     TextStyle
 } from "./common";
 import {BStyleSet} from "./style";
@@ -99,51 +100,93 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
     return html_box
 }
 
-function make_line_box(text:string, size:BSize, position:BPoint, style:TextStyle):LineBox {
-    return { type: "line", text, position, size, style, }
-}
 function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
     log("box_text_layout",elem.name,min,elem)
     let body_box:LayoutBox = make_box_from_style(elem,styles,bounds.size(),min)
-    //get the text children as strings
-    let text_lines:string[] = elem.children.map((ch:BNode) => ((ch as BText).text))
     let text_style:TextStyle = styles.lookup_text_style(body_box.element.name)
     let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
     let line_height = text_style["font-size"]*1.3
-    let curr_text = ""
-    let curr_pos = insets.top_left()
     let curr_w = 0
     let avail_w = bounds.w
     let lines:LineBox[] = []
-    text_lines.forEach(text => {
+    let current_line:LineBox = {
+        type: "line",
+        position: insets.top_left(),
+        runs: [],
+        size: new BSize(0,20),
+    }
+    elem.children.forEach((ch:BNode) => {
+        let text = ""
+        let text_style:TextStyle
+        if(ch.type === 'element') {
+            let elem = ch as BElement
+            let tch = elem.children[0] as BText
+            text_style = styles.lookup_text_style(elem.name)
+            text = tch.text
+        }
+        if(ch.type === 'text') {
+            text_style = styles.lookup_text_style(elem.name)
+            text = ch.text
+        }
+        // log(`input text "${text}"`)
+        // log("text style",text_style)
+        let current_run:RunBox = {
+            type: "run",
+            position: new BPoint(curr_w,0),
+            text: "",
+            size: new BSize(10,10),
+            style: text_style,
+        }
         let chunks = new WhitespaceIterator(text)
-        let res = chunks.next()
-        while (res.done === false) {
-            let m = ctx.measureText(res.value)
-            if(curr_pos.x + curr_w + m.width < avail_w) {
-                curr_text += ' ' + res.value
-                curr_w += m.width + ctx.measureText(' ').width
+        while (true) {
+            let res = chunks.next()
+            if(res.done) break;
+            let chunk = res.value.trim()
+            if(chunk === '') continue;
+            ctx.font = `${current_run.style["font-size"]}px sans-serif`
+            let text_metrics = ctx.measureText(chunk)
+            if (current_line.position.x + curr_w + text_metrics.width < avail_w) {
+                current_run.text  += ' ' + chunk
+                curr_w += text_metrics.width + ctx.measureText(' ').width
             } else {
-                let size:BSize = new BSize(curr_w, line_height)
-                lines.push(make_line_box(curr_text, size, curr_pos, text_style))
-                curr_text = res.value
-                curr_w = m.width
-                curr_pos = new BPoint(insets.left,curr_pos.y+line_height)
+                // log("wrapping")
+                current_line.size = new BSize(curr_w, line_height)
+                current_run.size = new BSize(curr_w - current_run.position.x ,line_height)
+                // log("ADDING RUN",current_run.text,current_run.position)
+                current_line.runs.push(current_run)
+                lines.push(current_line)
+                curr_w = text_metrics.width
+                curr_w = 0
+                current_line = {
+                    type:'line',
+                    position: new BPoint(insets.left, current_line.position.y + line_height),
+                    runs:[],
+                    size: new BSize(avail_w,20)
+                }
+                current_run = {
+                    type:'run',
+                    position: new BPoint(curr_w,0),
+                    text:chunk,
+                    size: new BSize(10,10),
+                    style: text_style
+                }
             }
-            res = chunks.next()
         }
-        //handle the last line
-        if(curr_w > 0) {
-            let size:BSize = new BSize(curr_w, line_height)
-            lines.push(make_line_box(curr_text, size, curr_pos, text_style))
-            curr_text = ""
-            curr_pos = new BPoint(curr_w, curr_pos.y)
-            curr_w = 0
-        }
+        // log(`leftover text "${current_run.text}"`)
+        // current_run.text = curr_text
+        current_run.size = new BSize(curr_w - current_run.position.x ,line_height)
+        // log("ADDING RUN",current_run.text,current_run.position)
+        current_line.runs.push(current_run)
     })
-    log('bottom of',elem.name,curr_pos)
+    //handle the last line
+    if(curr_w > 0) {
+        current_line.size = new BSize(curr_w, line_height)
+        lines.push(current_line)
+        curr_w = 0
+    }
+    // log('bottom of',elem.name,current_line.position)
     body_box.children = lines
-    body_box.size = new BSize(body_box.size.w,curr_pos.y + line_height + insets.bottom);
+    body_box.size = new BSize(body_box.size.w,current_line.position.y + line_height + insets.bottom);
     return body_box
 }
 

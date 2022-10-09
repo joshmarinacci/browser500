@@ -130,12 +130,18 @@ export type LayoutBox = {
     children: LayoutChild[],
     style: BlockStyle,
 }
+export type RunBox = {
+    type:'run',
+    position: BPoint,
+    size: BSize,
+    text:string,
+    style:TextStyle,
+}
 export type LineBox = {
     type: 'line',
     position: BPoint,
     size: BSize,
-    text: string,
-    style: TextStyle,
+    runs:RunBox[],
 }
 
 export function log(...args: any[]) {

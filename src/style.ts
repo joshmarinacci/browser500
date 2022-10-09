@@ -2,6 +2,10 @@ import {BElement, BInsets, BlockStyle, BorderStyle, BText, TextStyle} from "./co
 import ohm from "ohm-js";
 
 
+function log(...args: any[]) {
+    // console.log("LOG",...args)
+}
+
 const default_stylesheet = String.raw`
 * {
     font-size: 10px;
@@ -125,7 +129,7 @@ export class BStyleSet {
         let names = ['display','background-color', 'border', 'padding', 'margin']
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
-        console.log(`FINAL block style for ${name}:`,style_object)
+        log(`FINAL block style for ${name}:`,style_object)
         return style_object as BlockStyle
     }
 
@@ -156,13 +160,13 @@ export class BStyleSet {
 }
 
 function parse_style_block(input: string, styles: BStyleSet) {
-    console.log("parsing_style",input)
+    log("parsing_style",input)
     let res1 = grammar.match(input)
     if (res1.failed()) throw new Error("match failed")
     let rules:CSSRule[] = semantics(res1).rules()
-    console.log("rules are",rules)
+    log("rules are",rules)
     rules.forEach(rule => {
-        console.log("selector",rule.selector,rule.props)
+        log("selector",rule.selector,rule.props)
         styles.append_style(rule)
     })
     // change styles to cascade

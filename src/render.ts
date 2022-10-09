@@ -1,11 +1,16 @@
 import {BColor, BPoint, BRect, LayoutBox, LineBox} from "./common";
 
+function log(...args: any[]) {
+    // console.log("LOG",...args)
+}
+
 const DEBUG = {
     BLOCK: {
         PADDING: false,
     },
     TEXT: {
         LINES: false,
+        RUNS:   false,
     }
 }
 
@@ -36,9 +41,25 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
 }
 
 function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
-    c.fillStyle = line.style.color
-    c.font = `${line.style["font-size"]}px sans-serif`
-    c.fillText(line.text, line.position.x, line.position.y + line.style["font-size"])
+    log('drawing line',line)
+    line.runs.forEach(run => {
+        log("drawing run",run.text)
+        c.fillStyle = run.style.color
+        c.font = `${run.style["font-size"]}px sans-serif`
+        c.fillText(run.text,
+            line.position.x + run.position.x,
+            line.position.y + run.position.y
+            + run.style["font-size"])
+        if(DEBUG.TEXT.RUNS) {
+            c.strokeStyle = 'red'
+            c.lineWidth = 1
+            c.strokeRect(line.position.x + run.position.x + 0.5,
+                line.position.y + run.position.y + 0.5,
+                run.size.w,
+                run.size.h
+                )
+        }
+    })
     if (DEBUG.TEXT.LINES) {
         c.strokeStyle = 'black'
         c.lineWidth = 1;
