@@ -14,7 +14,7 @@ import {
 // sub-line box spans with colored text
 
 function log(...args: any[]) {
-    console.log("LOG",...args)
+    // console.log("LOG",...args)
 }
 
 const make_box_from_style = (element: BElement, styles: BStyleSet, size: BSize, position: BPoint):LayoutBox => {

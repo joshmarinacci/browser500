@@ -1,17 +1,32 @@
 // pull out CSS strings
-import {BElement, BInsets, BStyleSet} from "./common";
+import {BElement, BInsets, BStyleSet, BText} from "./common";
 
-export function extract_styles(_root: BElement): readonly string[] {
-    // let res:BElement[] = findElemenstByName(root,'style');
-    //find all style elements and pull out their
-    return [`body {
-              background-color: #ffffff;
-              color: #ff0000;
-            }`]
+function findByName(node: BElement, name: string):BElement[] {
+    return node.children.map(ch => {
+        if(ch.type === 'element') {
+            let elm = ch as BElement
+            if(elm.name === name) {
+                return [elm]
+            } else {
+                return findByName(elm,name)
+            }
+        } else {
+            return []
+        }
+    }).flat()
+}
+
+export function extract_styles(root: BElement): readonly string[] {
+    return findByName(root,'style')// find every style node
+        .map(el => el.children
+            .filter(ch => ch.type === 'text') // get the text nodes
+            .map((text: BText) => text.text)) // extract the text
+        .flat() // flatten
 }
 
 // css string to CSS tree
 export function parse_styles(_styles: string[]): BStyleSet {
+    console.log("parsing styles",_styles)
     let styles = new BStyleSet()
     styles.block.set("html", {
         background: 'green',

@@ -13,6 +13,14 @@
 
     let html1 = `
   <html>
+    <style type="text/css">
+        body {
+            background-color: red;
+        }
+        p {
+            background-color: white;
+        }
+    </style>
       <body>
       <p>Greetings Earthling. I have found a
        solution to your world's energy problems. I am going to blow it up.
@@ -32,6 +40,7 @@
     ctx.imageSmoothingEnabled = false
     console.log("input is",html1)
     let dom_tree = parse_html(html1)
+    console.log("dom tree is",dom_tree)
     let css_strings = extract_styles(dom_tree)
     let styles = parse_styles(css_strings)
     let layout_tree = layout(dom_tree,styles,canvas)
