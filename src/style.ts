@@ -4,7 +4,7 @@ import ohm from "ohm-js";
 
 const default_stylesheet = String.raw`
 * {
-    font-size: 10pt;
+    font-size: 10px;
     display:block;
     color:black;
     background-color:white;

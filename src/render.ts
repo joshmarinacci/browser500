@@ -51,6 +51,7 @@ function translate(c: CanvasRenderingContext2D, position: BPoint) {
 }
 
 function stroke_rect(c: CanvasRenderingContext2D, rect: BRect, thick: number, color: BColor): void {
+    if(thick < 1) return
     c.lineWidth = thick
     c.strokeStyle = color
     c.strokeRect(rect.x, rect.y, rect.w, rect.h)
