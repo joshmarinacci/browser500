@@ -18,6 +18,14 @@ const default_stylesheet = String.raw`
     margin: 5;
     border: 0px solid black;
 }
+style {
+    display:none;
+}
+
+li {
+    display:list-item;
+}
+
 `
 
 const raw_grammar = String.raw`

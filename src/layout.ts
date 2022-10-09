@@ -82,21 +82,28 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
     element.children.forEach((ch) => {
         if(ch.type === 'element') {
             let elem = ch as BElement
-            if(elem.name === 'body') {
-                let box = box_box_layout(elem,styles,body_bounds.size(),lowest,ctx)
-                lowest = new BPoint(lowest.x,box.position.y+box.size.h)
-                html_box.children.push(box)
-            }
-            if(elem.name === 'p') {
+            let style = styles.lookup_block_style(elem.name)
+            if(style.display === 'none') return
+            if(style.display === "inline") return log("not doing inline yet. :(")
+            if(elem.name === 'p' || style.display === 'list-item') {
                 let box = box_text_layout(elem,body_bounds, styles,lowest, ctx)
                 lowest = new BPoint(lowest.x,box.position.y+box.size.h)
                 html_box.children.push(box)
+                return
             }
-            if(elem.name === 'style') {
-                log("skipping 'style'")
+            if(style.display === "block") {
+                log("doing block ",elem.name)
+                let box = box_box_layout(elem,styles,body_bounds.size(),lowest,ctx)
+                lowest = new BPoint(lowest.x,box.position.y+box.size.h)
+                html_box.children.push(box)
+                return
             }
+            console.warn("didn't do element",elem.name, style.display)
+        } else {
+            console.warn(`element had an inline child `,ch)
         }
     })
+    html_box.size.h = lowest.y + inset.bottom
     return html_box
 }
 

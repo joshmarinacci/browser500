@@ -48,7 +48,7 @@ export class BInsets {
 }
 
 export type BlockStyle = {
-    display:"block"|"inline",
+    display:"block"|"inline"|"none"|"list-item",
     'background-color': BColor,
     border: BorderStyle,
     padding: BInsets,
@@ -118,6 +118,9 @@ export class BRect {
 
     top_left():BPoint {
         return new BPoint(this.x,this.y)
+    }
+    middle_left() {
+        return new BPoint(this.x,(this.y+this.h)/2)
     }
 
     static fromPosSiz(position: BPoint, size: BSize) {

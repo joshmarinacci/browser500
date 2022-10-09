@@ -1,4 +1,4 @@
-import {BColor, BPoint, BRect, LayoutBox, LineBox} from "./common";
+import {BColor, BPoint, BRect, BSize, LayoutBox, LineBox} from "./common";
 
 function log(...args: any[]) {
     // console.log("LOG",...args)
@@ -33,6 +33,10 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
         if (ch.type === 'box') draw_box(c, ch as LayoutBox)
         if (ch.type === 'line') draw_line(c, ch as LineBox)
     })
+    if (root.style.display === "list-item") {
+        let bullet = BRect.fromPosSiz(rect.middle_left().add(new BPoint(-3,0)),new BSize(5,5))
+        fill_rect(c,bullet,root.style.border.color)
+    }
     if (DEBUG.BLOCK.PADDING) {
         stroke_rect(c, root.size.toRect().subtract_inset(root.style.margin.add(root.style.border.thick).add(root.style.padding)), 2, 'red')
     }
