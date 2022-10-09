@@ -6,18 +6,19 @@
 <body>
 <canvas width='400' height='200'></canvas>
 <script type='module'>
-    import {
-        layout
-    } from './parser'
+    import {layout} from './layout'
     import {render} from './render'
     import {parse_html} from './html'
     import {extract_styles, parse_styles} from './style'
+
     let html1 = `
   <html>
-  <body>Greetings Earthling. I have found a
-   solution to your world's energy problems. I am going to blow it up.
+      <body>
+      <p>Greetings Earthling. I have found a
+       solution to your world's energy problems. I am going to blow it up.
+       </p>
+      <p>hi there</p>
   </body>
-  <p>hi there</p>
   </html>
   `
     let canvas = document.getElementsByTagName('canvas')[0]

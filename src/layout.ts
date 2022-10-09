@@ -12,8 +12,6 @@ import {
     TextStyle
 } from "./common";
 // sub-line box spans with colored text
-// noinspection JSUnusedLocalSymbols
-
 
 function log(...args: any[]) {
     console.log("LOG",...args)
@@ -84,7 +82,7 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
         if(ch.type === 'element') {
             let elem = ch as BElement
             if(elem.name === 'body') {
-                let box  = box_text_layout(elem, body_bounds, styles, lowest, ctx)
+                let box = box_box_layout(elem,styles,body_bounds.size(),lowest,ctx)
                 lowest = new BPoint(lowest.x,box.position.y+box.size.h)
                 html_box.children.push(box)
             }

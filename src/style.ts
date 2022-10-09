@@ -22,7 +22,7 @@ export function parse_styles(_styles: string[]): BStyleSet {
         padding: BInsets.uniform(10),
         margin: BInsets.uniform(0),
     })
-    styles.block.set('body', {
+    styles.block.set('p', {
         background: 'white',
         border: {
             color: 'black',
@@ -31,7 +31,7 @@ export function parse_styles(_styles: string[]): BStyleSet {
         padding: BInsets.uniform(10),
         margin: BInsets.uniform(0),
     })
-    styles.text.set('body', {
+    styles.text.set('p', {
         color: 'black',
         fontSize: 15,
     })
