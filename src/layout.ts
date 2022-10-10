@@ -58,30 +58,15 @@ export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElem
 }
 
 function calculate_layout_type(element: BElement, styles:BStyleSet):"inline"|"block" {
-    // log("scanning children of",element.name)
+    // if there are no block children then it's an inline context, otherwise it has to be block
     let block_count = 0;
-    let inline_count = 0;
     element.children.forEach(ch => {
-        if(ch.type === 'text') {
-            inline_count ++
-            return
-        }
         if(ch.type === 'element') {
-            let elem = ch as BElement
-            let style = styles.lookup_block_style(elem.name)
-            if(style.display === 'inline') {
-                inline_count++
-            } else {
-                block_count++
-            }
+            let style = styles.lookup_block_style((ch as BElement).name)
+            if(style.display !== 'inline') block_count++
         }
     })
-    if(block_count === 0) {
-        return "inline"
-    } else {
-        return "block"
-    }
-    // log(`elements of "${element.name}" block=${block_count} inline=${inline_count} layout=${element.layoutStyle}`)
+    return (block_count === 0)?"inline":"block"
 }
 
 function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
