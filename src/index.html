@@ -2,10 +2,16 @@
 <html lang="en">
 <head>
     <title>cool example</title>
+    <style type="text/css">
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
 <canvas width='400' height='200'></canvas>
 <script type='module'>
+    console.log("here")
     import {layout} from './layout'
     import {render} from './render'
     import {parse_html} from './html'
@@ -13,48 +19,6 @@
     import {BPoint, BSize} from './common'
     import {find_element} from './render'
 
-    let html1 = `
-  <html>
-    <style type="text/css">
-        html {
-            border: 2px solid #727272;
-        }
-        body {
-            background-color: #e8e8e8;
-        }
-        p {
-            background-color: white;
-            text-align: right;
-        }
-        b {
-            font-weight: bold;
-        }
-        i {
-            font-style: italic;
-        }
-        b,i {
-            color: red;
-        }
-        h2 {
-            text-align: center;
-        }
-    </style>
-      <body>
-      <h1>Header one</h1>
-      <p>Greetings <b>Earthling</b>. I have found a
-       solution to <i>your world's</i> energy problems. I am going to
-       <a href="https://screenrant.com/looney-tunes-funniest-ways-marvin-martian-tried-blow-up-earth/">blow
-       it up</a>.
-       </p>
-       <h2>header two</h2>
-      <p>hi there</p>
-      <ul>
-        <LI>item one</LI>
-        <li>item two</li>
-      </ul>
-  </body>
-  </html>
-  `
     const SIZE = new BSize(400,300)
     const SCALE = 1
     let canvas = document.getElementsByTagName('canvas')[0]
@@ -67,20 +31,45 @@
     ctx.font = '12pt sans-serif'
     ctx.imageSmoothingEnabled = false
     // console.log("input is",html1)
-    let dom_tree = parse_html(html1)
-    // console.log("dom tree is",dom_tree)
-    let css_strings = extract_styles(dom_tree)
-    let styles = parse_styles(css_strings)
-    let layout_tree = layout(dom_tree,styles,canvas)
-    render(layout_tree,canvas)
 
+
+    let layout_tree = null
+    let current_url = ""
+
+    async function load_page(url) {
+        current_url = url
+        let html1_req = await fetch(url)
+        let html1 = await html1_req.text()
+        // console.log("html1",html1)
+
+        let default_css_req = await fetch("./samples/default.css")
+        let default_css = await default_css_req.text()
+        // console.log('default css',default_css)
+
+        let dom_tree = parse_html(html1)
+        // console.log("dom tree is",dom_tree)
+        let css_strings = extract_styles(dom_tree)
+        let styles = parse_styles(css_strings, default_css)
+        layout_tree = layout(dom_tree,styles,canvas)
+        render(layout_tree,canvas)
+    }
+
+    load_page("http://localhost:1234/samples/page1.html").then(v=>console.log(v)).catch(e => console.error(e))
 
     canvas.addEventListener('mousedown',e => {
         let rect = e.target.getBoundingClientRect()
         let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(1/SCALE)
-        let elem = find_element(layout_tree,pt)
-        if(elem && elem.name === 'a') {
-            console.log("clicked on a link", elem.atts['href'])
+        if(layout_tree) {
+            let elem = find_element(layout_tree, pt)
+            if (elem && elem.name === 'a') {
+                console.log("clicked on a link", elem.atts['href'])
+                console.log("base url is",current_url)
+                let url1 = new URL(current_url,"http://localhost:1234/")
+                console.log("url1",url1.href)
+                let url = new URL(elem.atts['href'],url1)
+                console.log("url",url.href)
+                load_page(url.href).then(o => console.log(o)).catch(e => console.error(e))
+            }
         }
     })
 </script>

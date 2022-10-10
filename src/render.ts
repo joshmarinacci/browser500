@@ -16,7 +16,10 @@ const DEBUG = {
 
 // layout tree to canvas
 export function render(root: LayoutBox, canvas: HTMLCanvasElement): void {
-    draw_box(canvas.getContext('2d') as CanvasRenderingContext2D, root)
+    let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    draw_box(ctx, root)
 }
 
 function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {

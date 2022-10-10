@@ -6,41 +6,6 @@ function log(...args: any[]) {
     // console.log("LOG",...args)
 }
 
-const default_stylesheet = String.raw`
-* {
-    font-size: 10px;
-    font-weight: normal;
-    font-style: normal;
-    display:block;
-    color:black;
-    background-color:transparent;
-    padding: 5;
-    margin: 5;
-    border: 0px solid black;
-    text-decoration: none;
-    text-align: left;
-}
-style {
-    display:none;
-}
-li {
-    display:list-item;
-}
-h1, h2, h3, h4, h5 {
-    font-weight: bold;
-}
-h1 {
-    font-size:20px;
-}
-h2 {
-    font-size: 18px;
-}
-a {
-    text-decoration: underline;
-    color: blue;
-}
-`
-
 const raw_grammar = String.raw`
 CSS {
     RuleSet = Rule*
@@ -190,7 +155,7 @@ function parse_style_block(input: string, styles: BStyleSet) {
     rules.forEach(rule => styles.append_style(rule))
 }
 
-export function parse_styles(styles: string[]): BStyleSet {
+export function parse_styles(styles: string[], default_stylesheet: string): BStyleSet {
     let style_set = new BStyleSet()
     parse_style_block(default_stylesheet, style_set)
     styles.forEach(input => parse_style_block(input, style_set))

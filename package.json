@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel",
-    "build": "parcel build"
+    "dev": "parcel src/index.html",
+    "build": "parcel build",
+    "serve-samples": "http-server samples/"
   },
   "author": "",
   "license": "ISC",

@@ -1,0 +1,32 @@
+* {
+    font-size: 10px;
+    font-weight: normal;
+    font-style: normal;
+    display:block;
+    color:black;
+    background-color:transparent;
+    padding: 5;
+    margin: 5;
+    border: 0px solid black;
+    text-decoration: none;
+    text-align: left;
+}
+style {
+    display:none;
+}
+li {
+    display:list-item;
+}
+h1, h2, h3, h4, h5 {
+    font-weight: bold;
+}
+h1 {
+    font-size:20px;
+}
+h2 {
+    font-size: 18px;
+}
+a {
+    text-decoration: underline;
+    color: blue;
+}
