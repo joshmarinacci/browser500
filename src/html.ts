@@ -1,4 +1,4 @@
-import {BElement, BNode, BText, log} from "./common";
+import {BElement, BNode, BText} from "./common";
 import ohm from "ohm-js";
 
 const raw_grammar = String.raw`
@@ -37,9 +37,7 @@ export function parse_html(input: string): BElement {
     let grammar = ohm.grammar(raw_grammar)
     let semantics = grammar.createSemantics()
     semantics.addOperation('ast', {
-        _terminal() {
-            return this.sourceString
-        },
+        _terminal() { return this.sourceString },
         _iter: (...children) => children.map(c => c.ast()),
         ident: (a, b) => (a.ast() + b.ast().join("")).toLowerCase(),
         Open: (_a, b, atts, _c) => ({type: "open", value: b.ast(), atts: atts.ast()}),
@@ -83,9 +81,6 @@ export function parse_html(input: string): BElement {
 
     let res1 = grammar.match(input)
     if (res1.failed()) throw new Error("match failed")
-    let tokens: Token[] = semantics(res1).ast()
-    let root = to_elements(tokens)
-    let ch: BElement = (root as BElement).children[0] as BElement
-    log("final dom is", ch)
-    return ch
+    let root = to_elements(semantics(res1).ast())
+    return (root as BElement).children[0] as BElement
 }
