@@ -85,7 +85,7 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
             let style = styles.lookup_block_style(elem.name)
             if(style.display === 'none') return
             if(style.display === "inline") return log("not doing inline yet. :(")
-            if(elem.name === 'p' || style.display === 'list-item') {
+            if(elem.name === 'h1' || elem.name === 'h2' || elem.name === 'p' || style.display === 'list-item') {
                 let box = box_text_layout(elem,body_bounds, styles,lowest, ctx)
                 lowest = new BPoint(lowest.x,box.position.y+box.size.h)
                 html_box.children.push(box)

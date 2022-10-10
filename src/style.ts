@@ -13,7 +13,7 @@ const default_stylesheet = String.raw`
     font-style: normal;
     display:block;
     color:black;
-    background-color:white;
+    background-color:transparent;
     padding: 5;
     margin: 5;
     border: 0px solid black;
@@ -21,9 +21,17 @@ const default_stylesheet = String.raw`
 style {
     display:none;
 }
-
 li {
     display:list-item;
+}
+h1, h2, h3, h4, h5 {
+    font-weight: bold;
+}
+h1 {
+    font-size:20px;
+}
+h2 {
+    font-size: 18px;
 }
 
 `
@@ -31,7 +39,8 @@ li {
 const raw_grammar = String.raw`
 CSS {
     RuleSet = Rule*
-    Rule = ident "{" RuleBody "}"
+    Rule = Selector "{" RuleBody "}"
+    Selector = ListOf<ident, ",">
     RuleBody = RuleItem*
     RuleItem = PropName ":" propValue ";"
     ident = ("*" | letter | digit)+
@@ -64,7 +73,7 @@ export function extract_styles(root: BElement): readonly string[] {
 }
 
 export type CSSRule = {
-    selector:string,
+    selectors:string[],
     props:CSSProp[],
 }
 
@@ -80,14 +89,17 @@ semantics.addOperation('rules', {
     _terminal() { return this.sourceString },
     _iter: (...children) => children.map(c => c.rules()),
     ident: (b) => b.rules().join(""),
-    Rule:(selector,_1,body,_2) => ({ selector:selector.rules(), props:body.rules()}),
+    Rule:(selector,_1,body,_2) => ({ selectors:selector.rules(), props:body.rules()}),
     PropName:(a,b) => a.rules() + b.rules().join(""),
     propValue:(a) => a.rules().join(""),
     RuleItem:(name,_1,value,_2) => ({ name: name.rules(), value: value.rules() }),
+    Selector:(a) => {
+        return a.asIteration().rules()
+    }
 })
 
 function get_prop_value(p: CSSProp):any {
-    // console.log("prop is", r.selector, p.name, '=', p.value)
+    // log("prop is", p.name, '=', p.value)
     if (p.name === 'margin')      return BInsets.uniform(parseInt(p.value))
     if (p.name === 'padding')     return BInsets.uniform(parseInt(p.value))
     if (p.name === 'font-size')   return parseInt(p.value)
@@ -151,7 +163,7 @@ export class BStyleSet {
         // log(`looking up ${elem_name} # ${prop_name}`)
         // log("rules",this.rules)
         let val = this.def_block[prop_name]
-        this.rules.filter(r => r.selector === elem_name || r.selector === "*")
+        this.rules.filter(r => r.selectors.includes(elem_name) || r.selectors.includes("*"))
             .forEach(r => {
             r.props.filter(p => p.name === prop_name)
                 .forEach((p => { val = get_prop_value(p) }))
