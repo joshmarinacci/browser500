@@ -1,4 +1,4 @@
-import {BColor, BPoint, BRect, BSize, LayoutBox, LineBox} from "./common";
+import {BColor, BElement, BPoint, BRect, BSize, LayoutBox, LineBox} from "./common";
 
 function log(...args: any[]) {
     // console.log("LOG",...args)
@@ -75,4 +75,29 @@ function stroke_rect(c: CanvasRenderingContext2D, rect: BRect, thick: number, co
 function fill_rect(c: CanvasRenderingContext2D, rect: BRect, color: BColor): void {
     c.fillStyle = color
     c.fillRect(rect.x, rect.y, rect.w, rect.h)
+}
+export function find_element(layout_tree:LayoutBox, pt:BPoint):BElement|undefined {
+    // console.log("looking at",pt,layout_tree.element.name)
+    for (let ch of layout_tree.children) {
+        if (ch.type === "box") {
+            let box = ch as LayoutBox
+            if(box.bounds().contains(pt)) {
+                // console.log("contains it",box.element.name,box.bounds(),pt)
+                let pt2 = pt.subtract(box.position)
+                return find_element(box,pt2)
+            }
+        }
+        if(ch.type === "line") {
+            let line = ch as LineBox
+            if(line.bounds().contains(pt)) {
+                let pt2 = pt.subtract(line.position)
+                for(let run of line.runs) {
+                    if(run.bounds().contains(pt2)) {
+                        return run.element
+                    }
+                }
+            }
+        }
+    }
+    return layout_tree.element
 }

@@ -19,7 +19,7 @@ function log(...args: any[]) {
 
 const make_box_from_style = (element: BElement, styles: BStyleSet, size: BSize, position: BPoint):LayoutBox => {
     let style = styles.lookup_block_style(element.name)
-    return { type:"box", position, size, element, children:[], style }
+    return new LayoutBox(element, position, size, style);
 }
 
 type ItRes = {
@@ -115,17 +115,14 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
     let curr_w = 0
     let avail_w = bounds.w
     let lines:LineBox[] = []
-    let current_line:LineBox = {
-        type: "line",
-        position: insets.top_left(),
-        runs: [],
-        size: new BSize(0,20),
-    }
+    let current_line:LineBox = new LineBox(insets.top_left(), new BSize(0,20))
     elem.children.forEach((ch:BNode) => {
         let text = ""
         let text_style:TextStyle
+        let owner:BElement = elem
         if(ch.type === 'element') {
             let elem = ch as BElement
+            owner = elem
             let tch = elem.children[0] as BText
             text_style = styles.lookup_text_style(elem.name)
             text = tch.text
@@ -136,7 +133,7 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
         }
         // log(`input text "${text}"`)
         // log("text style",text_style)
-        let current_run:RunBox = new RunBox("",new BPoint(curr_w,0),text_style)
+        let current_run:RunBox = new RunBox("",new BPoint(curr_w,0),text_style, owner)
         let chunks = new WhitespaceIterator(text)
         while (true) {
             let res = chunks.next()
@@ -157,13 +154,11 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
                 lines.push(current_line)
                 curr_w = chunk_size.width
                 curr_w = 0
-                current_line = {
-                    type:'line',
-                    position: new BPoint(insets.left, current_line.position.y + line_height),
-                    runs:[],
-                    size: new BSize(avail_w,20)
-                }
-                current_run = new RunBox(chunk,new BPoint(curr_w,0),text_style)
+                current_line = new LineBox(
+                    new BPoint(insets.left, current_line.position.y + line_height),
+                    new BSize(avail_w,20)
+                )
+                current_run = new RunBox(chunk, new BPoint(curr_w, 0), text_style, owner)
             }
         }
         // log(`leftover text "${current_run.text}"`)

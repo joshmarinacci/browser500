@@ -75,6 +75,12 @@ export class BPoint {
     add(bPoint: BPoint) {
         return new BPoint(this.x + bPoint.x, this.y + bPoint.y)
     }
+    scale(factor: number):BPoint {
+        return new BPoint(this.x*factor,this.y*factor)
+    }
+    subtract(position: BPoint) {
+        return new BPoint(this.x - position.x, this.y - position.y)
+    }
 }
 export class BSize {
     w: number
@@ -132,18 +138,36 @@ export class BRect {
     translate(position: BPoint) {
         return new BRect(this.x + position.x , this.y + position.y, this.w,this.h)
     }
+    contains(point:BPoint) {
+        if(this.x > point.x) return false
+        if(this.y > point.y) return false
+        if(this.x+this.w < point.x) return false
+        if(this.y+this.h < point.y) return false
+        return true
+    }
 }
 
 export type LayoutChild = {
     type: 'box' | 'line'
 }
-export type LayoutBox = {
-    type: 'box',
-    element: BElement,
-    position: BPoint,
-    size: BSize,
-    children: LayoutChild[],
-    style: BlockStyle,
+export class LayoutBox {
+    type: 'box'
+    element: BElement
+    position: BPoint
+    size: BSize
+    children: LayoutChild[]
+    style: BlockStyle
+    constructor(element:BElement, position:BPoint, size:BSize, style:BlockStyle) {
+        this.type = 'box'
+        this.position = position
+        this.size = size
+        this.element = element
+        this.children = []
+        this.style = style
+    }
+    bounds() {
+        return BRect.fromPosSiz(this.position,this.size)
+    }
 }
 export class RunBox{
     type:'run'
@@ -151,12 +175,14 @@ export class RunBox{
     size: BSize
     text:string
     style:TextStyle
+    element:BElement
 
-    constructor(text:string,position: BPoint, style: TextStyle) {
+    constructor(text: string, position: BPoint, style: TextStyle, elem: BElement) {
         this.position = position
         this.size = new BSize(10,10)
         this.text = text
         this.style = style
+        this.element = elem
     }
 
     set_style(ctx: CanvasRenderingContext2D) {
@@ -168,11 +194,20 @@ export class RunBox{
         return BRect.fromPosSiz(this.position,this.size)
     }
 }
-export type LineBox = {
-    type: 'line',
-    position: BPoint,
-    size: BSize,
-    runs:RunBox[],
+export class LineBox {
+    type: 'line'
+    position: BPoint
+    size: BSize
+    runs:RunBox[]
+    constructor(position:BPoint, size:BSize) {
+        this.type = 'line'
+        this.position = position
+        this.size = size
+        this.runs = []
+    }
+    bounds() {
+        return BRect.fromPosSiz(this.position,this.size)
+    }
 }
 
 export function log(...args: any[]) {

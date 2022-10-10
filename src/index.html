@@ -10,6 +10,8 @@
     import {render} from './render'
     import {parse_html} from './html'
     import {extract_styles, parse_styles} from './style'
+    import {BPoint} from './common'
+    import {find_element} from './render'
 
     let html1 = `
   <html>
@@ -40,7 +42,9 @@
       <body>
       <h1>Header one</h1>
       <p>Greetings <b>Earthling</b>. I have found a
-       solution to <i>your world's</i> energy problems. I am going to <a>blow it up</a>.
+       solution to <i>your world's</i> energy problems. I am going to
+       <a href="https://screenrant.com/looney-tunes-funniest-ways-marvin-martian-tried-blow-up-earth/">blow
+       it up</a>.
        </p>
        <h2>header two</h2>
       <p>hi there</p>
@@ -67,6 +71,16 @@
     let styles = parse_styles(css_strings)
     let layout_tree = layout(dom_tree,styles,canvas)
     render(layout_tree,canvas)
+
+
+    canvas.addEventListener('mousedown',e => {
+        let rect = e.target.getBoundingClientRect()
+        let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(0.5)
+        let elem = find_element(layout_tree,pt)
+        if(elem && elem.name === 'a') {
+            console.log("clicked on a link", elem.atts['href'])
+        }
+    })
 </script>
 </body>
 </html>
