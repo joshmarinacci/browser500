@@ -48,6 +48,10 @@ function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
         run.set_style(c)
         let pos = line.position.add(run.position)
         c.fillText(run.text,pos.x,pos.y + run.style["font-size"])
+        if(run.style["text-decoration"] === 'underline') {
+            let underline = new BRect(run.position.x,run.position.y+run.size.h, run.size.w, 1);
+            stroke_rect(c,underline.translate(line.position),1,run.style.color)
+        }
         if(DEBUG.TEXT.RUNS) stroke_rect(c,run.bounds().translate(line.position),1,'red');
     })
     if (DEBUG.TEXT.LINES) {

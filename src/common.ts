@@ -58,6 +58,7 @@ export type TextStyle = {
     'font-size': number,
     'font-weight':"normal"|"bold"
     'font-style':"normal"|"italic"
+    'text-decoration':'none'|'underline'
     color: BColor,
 }
 

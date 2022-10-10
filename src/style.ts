@@ -17,6 +17,7 @@ const default_stylesheet = String.raw`
     padding: 5;
     margin: 5;
     border: 0px solid black;
+    text-decoration: none;
 }
 style {
     display:none;
@@ -33,7 +34,10 @@ h1 {
 h2 {
     font-size: 18px;
 }
-
+a {
+    text-decoration: underline;
+    color: blue;
+}
 `
 
 const raw_grammar = String.raw`
@@ -108,6 +112,7 @@ function get_prop_value(p: CSSProp):any {
     if (p.name === 'color')       return p.value
     if (p.name === 'display')     return p.value
     if (p.name === 'background-color') return p.value
+    if (p.name === 'text-decoration') return p.value
     if (p.name === 'border') {
         let parts = p.value.split(" ");
         return {
@@ -141,6 +146,7 @@ export class BStyleSet {
             'font-size': 10,
             "font-weight":'normal',
             "font-style":'normal',
+            'text-decoration':"none"
         }
     }
 
@@ -153,7 +159,7 @@ export class BStyleSet {
     }
 
     lookup_text_style(name: string): TextStyle {
-        let names = ['color','font-size','font-weight','font-style'];
+        let names = ['color','font-size','font-weight','font-style','text-decoration'];
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         return style_object as TextStyle
