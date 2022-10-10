@@ -14,6 +14,9 @@
 style {
     display:none;
 }
+i,b,a {
+    display: inline;
+}
 li {
     display:list-item;
 }

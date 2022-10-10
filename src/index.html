@@ -54,7 +54,7 @@
         render(layout_tree,canvas)
     }
 
-    load_page("http://localhost:1234/samples/page1.html").then(v=>console.log(v)).catch(e => console.error(e))
+    load_page("http://localhost:1234/samples/page1.html").catch(e => console.error(e))
 
     canvas.addEventListener('mousedown',e => {
         let rect = e.target.getBoundingClientRect()
@@ -63,12 +63,12 @@
             let elem = find_element(layout_tree, pt)
             if (elem && elem.name === 'a') {
                 console.log("clicked on a link", elem.atts['href'])
-                console.log("base url is",current_url)
+                // console.log("base url is",current_url)
                 let url1 = new URL(current_url,"http://localhost:1234/")
-                console.log("url1",url1.href)
+                // console.log("url1",url1.href)
                 let url = new URL(elem.atts['href'],url1)
-                console.log("url",url.href)
-                load_page(url.href).then(o => console.log(o)).catch(e => console.error(e))
+                // console.log("url",url.href)
+                load_page(url.href).catch(e => console.error(e))
             }
         }
     })

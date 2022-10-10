@@ -57,6 +57,33 @@ export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElem
     return box_box_layout(element, styles, canvas_size, new BPoint(0,0), canvas.getContext("2d"))
 }
 
+function calculate_layout_type(element: BElement, styles:BStyleSet):"inline"|"block" {
+    // log("scanning children of",element.name)
+    let block_count = 0;
+    let inline_count = 0;
+    element.children.forEach(ch => {
+        if(ch.type === 'text') {
+            inline_count ++
+            return
+        }
+        if(ch.type === 'element') {
+            let elem = ch as BElement
+            let style = styles.lookup_block_style(elem.name)
+            if(style.display === 'inline') {
+                inline_count++
+            } else {
+                block_count++
+            }
+        }
+    })
+    if(block_count === 0) {
+        return "inline"
+    } else {
+        return "block"
+    }
+    // log(`elements of "${element.name}" block=${block_count} inline=${inline_count} layout=${element.layoutStyle}`)
+}
+
 function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
     // log("layout of",element.name,'at',position)
     let html_box:LayoutBox = make_box_from_style(element, styles, canvas_size, position)
@@ -64,28 +91,25 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
     let body_bounds:BRect = html_box.size.toRect().subtract_inset(inset)
     let lowest:BPoint = body_bounds.top_left()
     element.children.forEach((ch) => {
+        let elem:BElement
         if(ch.type === 'element') {
-            let elem = ch as BElement
-            let style = styles.lookup_block_style(elem.name)
-            if(style.display === 'none') return
-            if(style.display === "inline") return log("not doing inline yet. :(")
-            if(elem.name === 'h1' || elem.name === 'h2' || elem.name === 'p' || style.display === 'list-item') {
-                let box = box_text_layout(elem,body_bounds, styles,lowest, ctx)
-                lowest = new BPoint(lowest.x,box.position.y+box.size.h)
-                html_box.children.push(box)
-                return
-            }
-            if(style.display === "block") {
-                log("doing block ",elem.name)
-                let box = box_box_layout(elem,styles,body_bounds.size(),lowest,ctx)
-                lowest = new BPoint(lowest.x,box.position.y+box.size.h)
-                html_box.children.push(box)
-                return
-            }
-            console.warn("didn't do element",elem.name, style.display)
-        } else {
-            console.warn(`element had an inline child `,ch)
+            elem = ch as BElement
         }
+        if(ch.type === 'text') {
+            let text = ch as BText
+            elem = new BElement('wrapper', {})
+            elem.children.push(text)
+        }
+
+        let style = styles.lookup_block_style(elem.name)
+        let layout_context = calculate_layout_type(elem,styles)
+        if(style.display === 'none') return
+        if(style.display === "inline") return console.warn("not doing inline yet. :(")
+        let box:LayoutBox
+        if(layout_context === 'inline') box = box_text_layout(elem,body_bounds, styles,lowest, ctx)
+        if(layout_context === 'block')  box = box_box_layout(elem, styles, body_bounds.size(), lowest, ctx)
+        lowest = new BPoint(lowest.x, box.position.y + box.size.h)
+        html_box.children.push(box)
     })
     html_box.size.h = lowest.y + inset.bottom
     return html_box
