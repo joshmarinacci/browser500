@@ -78,21 +78,15 @@ function fill_rect(c: CanvasRenderingContext2D, rect: BRect, color: BColor): voi
 }
 export function find_element(layout_tree:LayoutBox, pt:BPoint):BElement|undefined {
     // console.log("looking at",pt,layout_tree.element.name)
-    for (let ch of layout_tree.children) {
-        if (ch.type === "box") {
-            let box = ch as LayoutBox
-            if(box.bounds().contains(pt)) {
-                // console.log("contains it",box.element.name,box.bounds(),pt)
-                let pt2 = pt.subtract(box.position)
-                return find_element(box,pt2)
+    for (let box of layout_tree.children) {
+        if(box.bounds().contains(pt)) {
+            if (box.type === "box") {
+                return find_element(box as LayoutBox,pt.subtract(box.position))
             }
-        }
-        if(ch.type === "line") {
-            let line = ch as LineBox
-            if(line.bounds().contains(pt)) {
-                let pt2 = pt.subtract(line.position)
+            if(box.type === "line") {
+                let line = box as LineBox
                 for(let run of line.runs) {
-                    if(run.bounds().contains(pt2)) {
+                    if(run.bounds().contains(pt.subtract(line.position))) {
                         return run.element
                     }
                 }

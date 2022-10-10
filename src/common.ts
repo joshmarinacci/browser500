@@ -147,39 +147,38 @@ export class BRect {
     }
 }
 
-export type LayoutChild = {
-    type: 'box' | 'line'
-}
-export class LayoutBox {
-    type: 'box'
-    element: BElement
+
+export class Box {
+    type:string
     position: BPoint
     size: BSize
-    children: LayoutChild[]
-    style: BlockStyle
-    constructor(element:BElement, position:BPoint, size:BSize, style:BlockStyle) {
-        this.type = 'box'
+    constructor(type:string, position:BPoint, size:BSize) {
+        this.type = type
         this.position = position
         this.size = size
-        this.element = element
-        this.children = []
-        this.style = style
     }
     bounds() {
         return BRect.fromPosSiz(this.position,this.size)
     }
 }
-export class RunBox{
-    type:'run'
-    position: BPoint
-    size: BSize
+export class LayoutBox extends Box {
+    element: BElement
+    children: Box[]
+    style: BlockStyle
+    constructor(element:BElement, position:BPoint, size:BSize, style:BlockStyle) {
+        super('box',position,size)
+        this.element = element
+        this.children = []
+        this.style = style
+    }
+}
+export class RunBox extends Box {
+    element:BElement
     text:string
     style:TextStyle
-    element:BElement
 
     constructor(text: string, position: BPoint, style: TextStyle, elem: BElement) {
-        this.position = position
-        this.size = new BSize(10,10)
+        super('run',position,new BSize(10,10))
         this.text = text
         this.style = style
         this.element = elem
@@ -190,38 +189,15 @@ export class RunBox{
         ctx.fillStyle = this.style.color
     }
 
-    bounds() {
-        return BRect.fromPosSiz(this.position,this.size)
-    }
 }
-export class LineBox {
-    type: 'line'
-    position: BPoint
-    size: BSize
+export class LineBox extends Box {
     runs:RunBox[]
     constructor(position:BPoint, size:BSize) {
-        this.type = 'line'
-        this.position = position
-        this.size = size
+        super('line',position,size)
         this.runs = []
-    }
-    bounds() {
-        return BRect.fromPosSiz(this.position,this.size)
     }
 }
 
 export function log(...args: any[]) {
     console.log("LOG",...args)
 }
-
-// html string to token stream
-// token stream to dom tree
-// @ts-ignore
-const elem = (name: string, atts: Record<string, string>, ...children: BNode[]): BElement => ({
-    type: 'element',
-    name,
-    atts,
-    children
-})
-// @ts-ignore
-const text = (text: string): BText => ({type: 'text', text})
