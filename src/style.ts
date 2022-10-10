@@ -98,9 +98,7 @@ semantics.addOperation('rules', {
     PropName:(a,b) => a.rules() + b.rules().join(""),
     propValue:(a) => a.rules().join(""),
     RuleItem:(name,_1,value,_2) => ({ name: name.rules(), value: value.rules() }),
-    Selector:(a) => {
-        return a.asIteration().rules()
-    }
+    Selector:(a) => a.asIteration().rules()
 })
 
 function get_prop_value(p: CSSProp):any {
@@ -186,21 +184,15 @@ export class BStyleSet {
 }
 
 function parse_style_block(input: string, styles: BStyleSet) {
-    // log("parsing_style",input)
     let res1 = grammar.match(input)
-    if (res1.failed()) throw new Error("match failed")
+    if (res1.failed()) return console.warn("Invalid CSS",input);
     let rules:CSSRule[] = semantics(res1).rules()
-    // log("rules are",rules)
-    rules.forEach(rule => {
-        // log("selector",rule.selector,rule.props)
-        styles.append_style(rule)
-    })
+    rules.forEach(rule => styles.append_style(rule))
 }
 
-// css string to CSS tree
 export function parse_styles(styles: string[]): BStyleSet {
     let style_set = new BStyleSet()
-    parse_style_block(default_stylesheet,style_set)
-    styles.forEach(input => parse_style_block(input,style_set))
+    parse_style_block(default_stylesheet, style_set)
+    styles.forEach(input => parse_style_block(input, style_set))
     return style_set
 }
