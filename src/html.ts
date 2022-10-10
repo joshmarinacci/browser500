@@ -22,24 +22,11 @@ HTML {
 `
 
 export function parse_html(input: string): BElement {
-    type Open = {
-        type: 'open',
+    type Token = {
+        type:'open'|'text'|'close'|'empty',
         value: string,
-        atts: {},
+        atts?: {},
     }
-    type Text = {
-        type: 'text',
-        value: string,
-    }
-    type Close = {
-        type: 'close'
-        value: string,
-    }
-    type Empty = {
-        type: 'empty',
-        value: string,
-    }
-    type Token = | Open | Text | Close | Empty
 
     const pairs_to_map = (pairs: string[][]) => {
         let obj: Record<string, string> = {}
@@ -67,45 +54,25 @@ export function parse_html(input: string): BElement {
 
     function to_elements(tokens: Token[]): BNode {
         let stack: BNode[] = []
-        let root: BElement = {
-            type: "element",
-            name: "root",
-            atts: {},
-            children: []
-        }
+        let root: BElement = new BElement('root',{})
         stack.push(root)
         for (let tok of tokens) {
-            // L.print("token",tok);
             if (tok.type === "open") {
-                let elem: BElement = {
-                    type: "element",
-                    name: tok.value,
-                    atts: (tok as Open).atts,
-                    children: []
-                }
+                let elem: BElement = new BElement(tok.value,tok.atts);
                 let last = stack[stack.length - 1] as BElement
                 if (last) last.children.push(elem)
                 stack.push(elem)
             }
             if (tok.type === "text") {
-                let text: BText = {
-                    type: "text",
-                    text: tok.value,
-                }
+                let text: BText = { type: "text", text: tok.value, }
                 let last = stack[stack.length - 1] as BElement
                 last.children.push(text)
             }
             if (tok.type === "close") {
-                // let last = stack[stack.length-1] as Element
                 stack.pop()
             }
             if (tok.type === 'empty') {
-                let elem: BElement = {
-                    type: "element",
-                    name: tok.value,
-                    atts: {},
-                    children: []
-                }
+                let elem: BElement = new BElement(tok.value,{});
                 let last = stack[stack.length - 1] as BElement
                 if (last) last.children.push(elem)
                 stack.push(elem)

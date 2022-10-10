@@ -1,9 +1,15 @@
 export type BNode = BElement | BText
-export type BElement = {
+export class BElement {
     readonly type: "element"
     readonly name: string
     readonly atts: Record<string, string>
     children: BNode[]
+    constructor(name:string, atts) {
+        this.type = 'element'
+        this.name = name
+        this.atts = atts
+        this.children = []
+    }
 }
 export type BText = {
     readonly type: "text"
