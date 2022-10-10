@@ -58,7 +58,7 @@ export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElem
 }
 
 function calculate_layout_type(element: BElement, styles:BStyleSet):"inline"|"block" {
-    // if there are no block children then it's an inline context, otherwise it has to be block
+    // if there are no block children then it's an inline context, otherwise it has to be block context
     let block_count = 0;
     element.children.forEach(ch => {
         if(ch.type === 'element') {
@@ -81,9 +81,8 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
             elem = ch as BElement
         }
         if(ch.type === 'text') {
-            let text = ch as BText
-            elem = new BElement('wrapper', {})
-            elem.children.push(text)
+            elem = new BElement('anonymous', {})
+            elem.children.push(ch)
         }
 
         let style = styles.lookup_block_style(elem.name)
