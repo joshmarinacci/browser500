@@ -10,7 +10,7 @@
     import {render} from './render'
     import {parse_html} from './html'
     import {extract_styles, parse_styles} from './style'
-    import {BPoint} from './common'
+    import {BPoint, BSize} from './common'
     import {find_element} from './render'
 
     let html1 = `
@@ -35,7 +35,7 @@
         b,i {
             color: red;
         }
-        li {
+        h2 {
             text-align: center;
         }
     </style>
@@ -55,12 +55,14 @@
   </body>
   </html>
   `
+    const SIZE = new BSize(400,300)
+    const SCALE = 1
     let canvas = document.getElementsByTagName('canvas')[0]
-    canvas.style.width = '800px'
-    canvas.style.height = '600px'
+    canvas.style.width = `${SIZE.w*SCALE}px`
+    canvas.style.height = `${SIZE.h*SCALE}px`
     canvas.style.imageRendering = 'optimizeSpeed'
-    canvas.width = 400;
-    canvas.height = 300
+    canvas.width = SIZE.w;
+    canvas.height = SIZE.h;
     let ctx =canvas.getContext('2d')
     ctx.font = '12pt sans-serif'
     ctx.imageSmoothingEnabled = false
@@ -75,7 +77,7 @@
 
     canvas.addEventListener('mousedown',e => {
         let rect = e.target.getBoundingClientRect()
-        let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(0.5)
+        let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(1/SCALE)
         let elem = find_element(layout_tree,pt)
         if(elem && elem.name === 'a') {
             console.log("clicked on a link", elem.atts['href'])
