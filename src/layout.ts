@@ -1,16 +1,4 @@
-import {
-    BElement,
-    BInsets,
-    BNode,
-    BPoint,
-    BRect,
-    BSize,
-    BText,
-    LayoutBox,
-    LineBox,
-    RunBox,
-    TextStyle
-} from "./common";
+import {BElement, BInsets, BNode, BPoint, BRect, BSize, BText, LayoutBox, LineBox, RunBox, TextStyle} from "./common";
 import {BStyleSet} from "./style";
 
 function log(...args: any[]) {
@@ -64,12 +52,9 @@ class WhitespaceIterator {
 
 }
 
-// dom tree + css tree -> layout tree
 export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement):LayoutBox {
-    // log("doing layout",element)
     let canvas_size:BSize = new BSize(canvas.width, canvas.height)
-    let ctx:CanvasRenderingContext2D = canvas.getContext("2d");
-    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), ctx)
+    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), canvas.getContext("2d"))
 }
 
 function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
@@ -186,18 +171,3 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
     body_box.size = new BSize(body_box.size.w,current_line.position.y + line_height + insets.bottom);
     return body_box
 }
-
-// map mouse input -> layout tree
-export function pickNode(_cursor:BPoint, _root:LayoutBox):LayoutBox[] {
-    return []
-}
-
-// map layout tree -> dom tree
-export function getDom(_box:LayoutBox):BNode {
-    return {
-        type:"text",
-        text:"hi"
-    }
-}
-// rollover for hover elements
-// click for link
