@@ -18,6 +18,7 @@ const default_stylesheet = String.raw`
     margin: 5;
     border: 0px solid black;
     text-decoration: none;
+    text-align: left;
 }
 style {
     display:none;
@@ -113,6 +114,7 @@ function get_prop_value(p: CSSProp):any {
     if (p.name === 'display')     return p.value
     if (p.name === 'background-color') return p.value
     if (p.name === 'text-decoration') return p.value
+    if (p.name === 'text-align') return p.value
     if (p.name === 'border') {
         let parts = p.value.split(" ");
         return {
@@ -136,6 +138,7 @@ export class BStyleSet {
             padding: BInsets.uniform(0),
             margin: BInsets.uniform(0),
             "background-color": 'white',
+            "text-align":"left",
             border: {
                 color: 'black',
                 thick: BInsets.uniform(0)
@@ -151,7 +154,7 @@ export class BStyleSet {
     }
 
     lookup_block_style(name: string): BlockStyle {
-        let names = ['display','background-color', 'border', 'padding', 'margin']
+        let names = ['display','background-color', 'border', 'padding', 'margin','text-align']
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         log(`FINAL block style for ${name}:`,style_object)

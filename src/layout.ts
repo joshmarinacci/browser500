@@ -12,7 +12,6 @@ import {
     TextStyle
 } from "./common";
 import {BStyleSet} from "./style";
-// sub-line box spans with colored text
 
 function log(...args: any[]) {
     // console.log("LOG",...args)
@@ -67,14 +66,14 @@ class WhitespaceIterator {
 
 // dom tree + css tree -> layout tree
 export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement):LayoutBox {
-    log("doing layout",element)
+    // log("doing layout",element)
     let canvas_size:BSize = new BSize(canvas.width, canvas.height)
     let ctx:CanvasRenderingContext2D = canvas.getContext("2d");
     return box_box_layout(element, styles, canvas_size, new BPoint(0,0), ctx)
 }
 
 function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
-    log("layout of",element.name,'at',position)
+    // log("layout of",element.name,'at',position)
     let html_box:LayoutBox = make_box_from_style(element, styles, canvas_size, position)
     let inset = html_box.style.margin.add(html_box.style.border.thick).add(html_box.style.padding)
     let body_bounds:BRect = html_box.size.toRect().subtract_inset(inset)
@@ -108,7 +107,7 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
 }
 
 function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
-    log("box_text_layout",elem.name,min,elem)
+    // log("box_text_layout",elem.name,min,elem)
     let body_box:LayoutBox = make_box_from_style(elem,styles,bounds.size(),min)
     let text_style:TextStyle = styles.lookup_text_style(body_box.element.name)
     let insets:BInsets = body_box.style.margin.add(body_box.style.border.thick).add(body_box.style.padding)
@@ -180,6 +179,14 @@ function box_text_layout(elem: BElement, bounds: BRect, styles: BStyleSet, min: 
         curr_w = 0
     }
     // log('bottom of',elem.name,current_line.position)
+    if(body_box.style['text-align'] !== 'left') {
+        lines.forEach(line => {
+            let nx = 0
+            if(body_box.style['text-align'] === 'right') nx = avail_w - line.size.w
+            if(body_box.style['text-align'] === 'center') nx = (avail_w - line.size.w)/2
+            line.position = new BPoint(nx,line.position.y)
+        })
+    }
     body_box.children = lines
     body_box.size = new BSize(body_box.size.w,current_line.position.y + line_height + insets.bottom);
     return body_box

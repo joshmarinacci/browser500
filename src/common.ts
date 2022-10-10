@@ -52,7 +52,8 @@ export type BlockStyle = {
     'background-color': BColor,
     border: BorderStyle,
     padding: BInsets,
-    margin: BInsets
+    margin: BInsets,
+    'text-align':"left"|"center"|"right",
 }
 export type TextStyle = {
     'font-size': number,
