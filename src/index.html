@@ -9,6 +9,7 @@
     </style>
 </head>
 <body>
+<nav><button id="swap">swap light & dark</button></nav>
 <canvas width='400' height='200'></canvas>
 <script type='module'>
     console.log("here")
@@ -18,6 +19,9 @@
     import {extract_styles, parse_styles} from './style'
     import {BPoint, BSize} from './common'
     import {find_element} from './render'
+
+    const $ = (sel) => document.querySelector(sel)
+    const on = (elem, type, cb) => elem.addEventListener(type,cb)
 
     const SIZE = new BSize(400,300)
     const SCALE = 1
@@ -35,14 +39,14 @@
 
     let layout_tree = null
     let current_url = ""
+    let light_theme = true
 
-    async function load_page(url) {
-        current_url = url
-        let html1_req = await fetch(url)
+    async function load_page() {
+        let html1_req = await fetch(current_url)
         let html1 = await html1_req.text()
         // console.log("html1",html1)
 
-        let default_css_req = await fetch("./samples/default.css")
+        let default_css_req = await fetch(`./samples/default_${light_theme?"light":"dark"}.css`)
         let default_css = await default_css_req.text()
         // console.log('default css',default_css)
 
@@ -53,8 +57,8 @@
         layout_tree = layout(dom_tree,styles,canvas)
         render(layout_tree,canvas)
     }
-
-    load_page("http://localhost:1234/samples/page1.html").catch(e => console.error(e))
+    current_url = "http://localhost:1234/samples/page1.html"
+    load_page().catch(e => console.error(e))
 
     canvas.addEventListener('mousedown',e => {
         let rect = e.target.getBoundingClientRect()
@@ -68,9 +72,16 @@
                 // console.log("url1",url1.href)
                 let url = new URL(elem.atts['href'],url1)
                 // console.log("url",url.href)
-                load_page(url.href).catch(e => console.error(e))
+                current_url = url.href
+                load_page().catch(e => console.error(e))
             }
         }
+    })
+
+    on($("#swap"),'click',(e) => {
+        console.log(e)
+        light_theme = !light_theme
+        load_page().catch(e => console.error(e))
     })
 </script>
 </body>

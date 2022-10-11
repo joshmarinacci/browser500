@@ -12,6 +12,13 @@
     text-decoration: none;
     text-align: left;
 }
+html {
+    margin:0;
+    padding:0;
+}
+body {
+    background-color: #eeeeee;
+}
 code {
     font-family: monospace;
 }
@@ -36,4 +43,10 @@ h2 {
 a {
     text-decoration: underline;
     color: blue;
+}
+b {
+    font-weight: bold;
+}
+i {
+    font-style: italic;
 }
