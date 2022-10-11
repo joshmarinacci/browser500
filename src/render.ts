@@ -37,8 +37,7 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
         if (ch.type === 'line') draw_line(c, ch as LineBox)
     })
     if (root.style.display === "list-item") {
-        let bullet = BRect.fromPosSiz(rect.middle_left().add(new BPoint(-3,0)),new BSize(5,5))
-        fill_rect(c,bullet,root.style.border.color)
+        fill_text(c, "\u2022", rect.middle_left().add(new BPoint(0,5)), "black")
     }
     if (DEBUG.BLOCK.PADDING) {
         stroke_rect(c, root.size.toRect().subtract_inset(root.style.margin.add(root.style.border.thick).add(root.style.padding)), 2, 'red')
@@ -50,7 +49,7 @@ function draw_line(c: CanvasRenderingContext2D, line: LineBox) {
     line.runs.forEach(run => {
         run.set_style(c)
         let pos = line.position.add(run.position)
-        c.fillText(run.text,pos.x,pos.y + run.style["font-size"])
+        fill_text(c,run.text,pos.add(new BPoint(0,run.style['font-size'])),run.style.color)
         if(run.style["text-decoration"] === 'underline') {
             let underline = new BRect(run.position.x,run.position.y+run.size.h, run.size.w, 1);
             stroke_rect(c,underline.translate(line.position),1,run.style.color)
@@ -73,6 +72,10 @@ function stroke_rect(c: CanvasRenderingContext2D, rect: BRect, thick: number, co
     c.lineWidth = thick
     c.strokeStyle = color
     c.strokeRect(rect.x, rect.y, rect.w, rect.h)
+}
+function fill_text(c: CanvasRenderingContext2D, x: string, bPoint: BPoint, black: string) {
+    c.fillStyle = black
+    c.fillText(x,bPoint.x,bPoint.y)
 }
 
 function fill_rect(c: CanvasRenderingContext2D, rect: BRect, color: BColor): void {
