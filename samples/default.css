@@ -2,19 +2,23 @@
     font-size: 10px;
     font-weight: normal;
     font-style: normal;
+    font-family: sans-serif;
     display:block;
     color:black;
     background-color:transparent;
-    padding: 5;
-    margin: 5;
+    padding: 5px;
+    margin: 5px;
     border: 0px solid black;
     text-decoration: none;
     text-align: left;
 }
+code {
+    font-family: monospace;
+}
 style {
     display:none;
 }
-i,b,a {
+strong,em,i,b,a,code {
     display: inline;
 }
 li {

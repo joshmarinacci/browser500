@@ -73,6 +73,7 @@ function get_prop_value(p: CSSProp):any {
     if (p.name === 'font-size')   return parseInt(p.value)
     if (p.name === 'font-weight') return p.value
     if (p.name === 'font-style')  return p.value
+    if (p.name === 'font-family') return p.value
     if (p.name === 'color')       return p.value
     if (p.name === 'display')     return p.value
     if (p.name === 'background-color') return p.value
@@ -112,7 +113,8 @@ export class BStyleSet {
             'font-size': 10,
             "font-weight":'normal',
             "font-style":'normal',
-            'text-decoration':"none"
+            'text-decoration':"none",
+            'font-family':"sans-serif",
         }
     }
 
@@ -125,7 +127,7 @@ export class BStyleSet {
     }
 
     lookup_text_style(name: string): TextStyle {
-        let names = ['color','font-size','font-weight','font-style','text-decoration'];
+        let names = ['color','font-size','font-weight','font-style','text-decoration','font-family'];
         let style_object = {}
         names.forEach(prop_name => style_object[prop_name] = this.lookup_property_value(prop_name, name))
         return style_object as TextStyle

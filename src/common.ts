@@ -66,6 +66,7 @@ export type TextStyle = {
     'font-weight':"normal"|"bold"
     'font-style':"normal"|"italic"
     'text-decoration':'none'|'underline'
+    'font-family':'sans-serif'|'serif'|'monospace'
     color: BColor,
 }
 
@@ -191,7 +192,7 @@ export class RunBox extends Box {
     }
 
     set_style(ctx: CanvasRenderingContext2D) {
-        ctx.font = `${this.style["font-style"]} ${this.style["font-weight"]} ${this.style["font-size"]}px sans-serif`
+        ctx.font = `${this.style["font-style"]} ${this.style["font-weight"]} ${this.style["font-size"]}px ${this.style["font-family"]}`
         ctx.fillStyle = this.style.color
     }
 
