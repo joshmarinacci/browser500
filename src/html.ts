@@ -12,7 +12,7 @@ HTML {
   Close = la "/" ident ra
   Empty = la ident "/" ra
   text = (~la any)+
-  Atts = ListOf<Att," ">
+  Atts = Att*
   q = "\'"
   qq = "\""
   Att = ident "=" AttVal
@@ -41,7 +41,7 @@ export function parse_html(input: string): BElement {
         _iter: (...children) => children.map(c => c.ast()),
         ident: (a, b) => (a.ast() + b.ast().join("")).toLowerCase(),
         Open: (_a, b, atts, _c) => ({type: "open", value: b.ast(), atts: atts.ast()}),
-        Atts: (a) => pairs_to_map(a.asIteration().children.map((ch: any) => ch.ast())),
+        Atts: (a) => pairs_to_map(a.ast()),
         Att: (name, _eq, value) => [name.ast(), value.ast()],
         AttVal_q: (_q1, value, _q2) => value.ast().join(""),
         AttVal_qq: (_q1, value, _q2) => value.ast().join(""),
