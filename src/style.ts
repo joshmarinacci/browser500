@@ -66,37 +66,18 @@ semantics.addOperation('rules', {
     Selector:(a) => a.asIteration().rules()
 })
 
-function get_prop_value(p: CSSProp):any {
-    // log("prop is", p.name, '=', p.value)
-    if (p.name === 'margin')      return BInsets.uniform(parseInt(p.value))
-    if (p.name === 'padding')     return BInsets.uniform(parseInt(p.value))
-    if (p.name === 'font-size')   return parseInt(p.value)
-    if (p.name === 'font-weight') return p.value
-    if (p.name === 'font-style')  return p.value
-    if (p.name === 'font-family') return p.value
-    if (p.name === 'color')       return p.value
-    if (p.name === 'display')     return p.value
-    if (p.name === 'background-color') return p.value
-    if (p.name === 'text-decoration') return p.value
-    if (p.name === 'text-align') return p.value
-    if (p.name === 'border') {
-        let parts = p.value.split(" ");
-        return {
-            color: parts[2],
-            thick: BInsets.uniform(parseInt(parts[0]))
-        }
-    }
-    console.warn("missing handler for css prop",p)
-    return p.value
-}
 
 export class BStyleSet {
     private def_text: TextStyle;
     private def_block: BlockStyle;
     private rules: CSSRule[];
+    private base_font_size: number;
+    private font_scale: number;
 
-    constructor() {
+    constructor(base_font_size: number, font_scale: number) {
         this.rules = []
+        this.base_font_size = base_font_size
+        this.font_scale = font_scale
         this.def_block = {
             display:"block",
             padding: BInsets.uniform(0),
@@ -140,13 +121,45 @@ export class BStyleSet {
         this.rules.filter(r => r.selectors.includes(elem_name) || r.selectors.includes("*"))
             .forEach(r => {
             r.props.filter(p => p.name === prop_name)
-                .forEach((p => { val = get_prop_value(p) }))
+                .forEach((p => { val = this.get_prop_value(p) }))
         })
         return val
     }
 
     append_style(rule: CSSRule) {
         this.rules.push(rule)
+    }
+    private get_prop_value(p: CSSProp):any {
+        // log("prop is", p.name, '=', p.value)
+        if (p.name === 'margin')      return BInsets.uniform(this.scale_prop(parseInt(p.value)))
+        if (p.name === 'padding')     return BInsets.uniform(this.scale_prop(parseInt(p.value)))
+        if (p.name === 'font-size')   {
+            if(p.value.endsWith("%")) {
+                return this.scale_prop(parseInt(p.value)/100*this.base_font_size)
+            }
+            return this.scale_prop(parseInt(p.value))
+        }
+        if (p.name === 'font-weight') return p.value
+        if (p.name === 'font-style')  return p.value
+        if (p.name === 'font-family') return p.value
+        if (p.name === 'color')       return p.value
+        if (p.name === 'display')     return p.value
+        if (p.name === 'background-color') return p.value
+        if (p.name === 'text-decoration') return p.value
+        if (p.name === 'text-align') return p.value
+        if (p.name === 'border') {
+            let parts = p.value.split(" ");
+            return {
+                color: parts[2],
+                thick: BInsets.uniform(this.scale_prop(parseInt(parts[0])))
+            }
+        }
+        console.warn("missing handler for css prop",p)
+        return p.value
+    }
+
+    public scale_prop(number: number) {
+        return number*this.font_scale
     }
 }
 
@@ -157,8 +170,8 @@ function parse_style_block(input: string, styles: BStyleSet) {
     rules.forEach(rule => styles.append_style(rule))
 }
 
-export function parse_styles(styles: string[], default_stylesheet: string): BStyleSet {
-    let style_set = new BStyleSet()
+export function parse_styles(styles: string[], default_stylesheet: string, base_font_size: number, font_scale: number): BStyleSet {
+    let style_set = new BStyleSet(base_font_size, font_scale)
     parse_style_block(default_stylesheet, style_set)
     styles.forEach(input => parse_style_block(input, style_set))
     return style_set

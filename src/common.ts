@@ -229,18 +229,11 @@ export class ImageCache {
         this.listeners.push(cb)
     }
     load(src:string) {
-        console.log("loading",src)
-        if(this.images.has(src)) {
-            log("already in the cache",src)
-            return
-        }
+        if(this.images.has(src)) return
         let url = new URL(src,this.base)
         let img = document.createElement('img')
         img.src = url.href
-        img.addEventListener('load',() => {
-            console.log("loaded",img.complete)
-            this.fire('loaded',img)
-        })
+        img.addEventListener('load',() => this.fire('loaded', img))
         this.images.set(src,img)
     }
 

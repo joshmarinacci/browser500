@@ -84,7 +84,7 @@ function image_layout(element: BElement, body_bounds: BRect, styles: BStyleSet, 
     }
     // if atts set, use atts
     if(element.atts['width'] && element.atts['height']) {
-        size = new BSize(parseInt(element.atts['width']),parseInt(element.atts['height']))
+        size = new BSize(styles.scale_prop(parseInt(element.atts['width'])),styles.scale_prop(parseInt(element.atts['height'])))
     }
     return new ImageBox(element, src, min, size, style)
 }
