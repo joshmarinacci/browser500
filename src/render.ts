@@ -15,11 +15,15 @@ const DEBUG = {
 }
 
 // layout tree to canvas
-export function render(root: LayoutBox, canvas: HTMLCanvasElement): void {
+export function render(root: LayoutBox, canvas: HTMLCanvasElement, scroll_offset: BPoint): void {
     let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     ctx.fillStyle = 'white'
     ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.save()
+    if(canvas.height - scroll_offset.y > root.bounds().h) scroll_offset = new BPoint(0,-root.bounds().h + canvas.height)
+    ctx.translate(scroll_offset.x,scroll_offset.y)
     draw_box(ctx, root)
+    ctx.restore()
 }
 
 function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {

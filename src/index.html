@@ -9,7 +9,11 @@
     </style>
 </head>
 <body>
-<nav><button id="swap">swap light & dark</button></nav>
+<nav>
+    <button id="swap">swap light & dark</button>
+    <button id="up">scroll up</button>
+    <button id="down">scroll down</button>
+</nav>
 <canvas width='400' height='200'></canvas>
 <script type='module'>
     console.log("here")
@@ -40,6 +44,7 @@
     let layout_tree = null
     let current_url = ""
     let light_theme = true
+    let scroll_offset = new BPoint(0,0)
 
     async function load_page() {
         let html1_req = await fetch(current_url)
@@ -55,7 +60,7 @@
         let css_strings = extract_styles(dom_tree)
         let styles = parse_styles(css_strings, default_css)
         layout_tree = layout(dom_tree,styles,canvas)
-        render(layout_tree,canvas)
+        render(layout_tree,canvas,scroll_offset)
     }
     current_url = "http://localhost:1234/samples/page1.html"
     load_page().catch(e => console.error(e))
@@ -79,8 +84,18 @@
     })
 
     on($("#swap"),'click',(e) => {
-        console.log(e)
         light_theme = !light_theme
+        load_page().catch(e => console.error(e))
+    })
+    on($("#up"),'click',(e) => {
+        scroll_offset = scroll_offset.add(new BPoint(0,+10))
+        if(scroll_offset.y > 0) {
+            scroll_offset = new BPoint(0,0)
+        }
+        load_page().catch(e => console.error(e))
+    })
+    on($("#down"),'click',(e) => {
+        scroll_offset = scroll_offset.add(new BPoint(0,-10))
         load_page().catch(e => console.error(e))
     })
 </script>
