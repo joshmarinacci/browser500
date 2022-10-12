@@ -16,12 +16,11 @@
 </nav>
 <canvas width='400' height='200'></canvas>
 <script type='module'>
-    console.log("here")
     import {layout} from './layout'
     import {render} from './render'
     import {parse_html} from './html'
     import {extract_styles, parse_styles} from './style'
-    import {BPoint, BSize} from './common'
+    import {BPoint, BSize, ImageCache} from './common'
     import {find_element} from './render'
 
     const $ = (sel) => document.querySelector(sel)
@@ -45,6 +44,7 @@
     let current_url = ""
     let light_theme = true
     let scroll_offset = new BPoint(0,0)
+    let image_cache = new ImageCache("http://localhost:1234/samples/")
 
     async function load_page() {
         let html1_req = await fetch(current_url)
@@ -59,15 +59,15 @@
         // console.log("dom tree is",dom_tree)
         let css_strings = extract_styles(dom_tree)
         let styles = parse_styles(css_strings, default_css)
-        layout_tree = layout(dom_tree,styles,canvas)
-        render(layout_tree,canvas,scroll_offset)
+        layout_tree = layout(dom_tree,styles,canvas,image_cache)
+        render(layout_tree,canvas,scroll_offset,image_cache)
     }
     current_url = "http://localhost:1234/samples/page1.html"
     load_page().catch(e => console.error(e))
 
     canvas.addEventListener('mousedown',e => {
         let rect = e.target.getBoundingClientRect()
-        let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(1/SCALE)
+        let pt = new BPoint(e.clientX,e.clientY).subtract(new BPoint(rect.x,rect.y)).scale(1/SCALE).subtract(scroll_offset)
         if(layout_tree) {
             let elem = find_element(layout_tree, pt)
             if (elem && elem.name === 'a') {
@@ -78,6 +78,7 @@
                 let url = new URL(elem.atts['href'],url1)
                 // console.log("url",url.href)
                 current_url = url.href
+                scroll_offset = new BPoint(0,0)
                 load_page().catch(e => console.error(e))
             }
         }
@@ -96,6 +97,9 @@
     })
     on($("#down"),'click',(e) => {
         scroll_offset = scroll_offset.add(new BPoint(0,-10))
+        load_page().catch(e => console.error(e))
+    })
+    on(image_cache,'loaded',(e)=>{
         load_page().catch(e => console.error(e))
     })
 </script>

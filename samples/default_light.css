@@ -23,6 +23,9 @@ body {
 code {
     font-family: monospace;
 }
+img {
+    background-color: magenta;
+}
 style {
     display:none;
 }

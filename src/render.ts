@@ -1,4 +1,4 @@
-import {BColor, BElement, BPoint, BRect, BSize, LayoutBox, LineBox} from "./common";
+import {BColor, BElement, BPoint, BRect, ImageBox, ImageCache, LayoutBox, LineBox} from "./common";
 
 function log(...args: any[]) {
     // console.log("LOG",...args)
@@ -15,18 +15,25 @@ const DEBUG = {
 }
 
 // layout tree to canvas
-export function render(root: LayoutBox, canvas: HTMLCanvasElement, scroll_offset: BPoint): void {
+export function render(root: LayoutBox, canvas: HTMLCanvasElement, scroll_offset: BPoint, cache: ImageCache): void {
     let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     ctx.fillStyle = 'white'
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.save()
     if(canvas.height - scroll_offset.y > root.bounds().h) scroll_offset = new BPoint(0,-root.bounds().h + canvas.height)
     ctx.translate(scroll_offset.x,scroll_offset.y)
-    draw_box(ctx, root)
+    draw_box(ctx, root,cache)
     ctx.restore()
 }
 
-function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
+function draw_image(c: CanvasRenderingContext2D, box: ImageBox, cache: ImageCache) {
+    fill_rect(c,box.bounds(),box.style["background-color"])
+    if(cache.is_loaded(box.src)) {
+        cache.draw_image(c,box.bounds(),box.src)
+    }
+}
+
+function draw_box(c: CanvasRenderingContext2D, root: LayoutBox, cache: ImageCache): void {
     c.save()
     translate(c, root.position)
     let insets = root.style.margin.add(root.style.border.thick)
@@ -37,8 +44,9 @@ function draw_box(c: CanvasRenderingContext2D, root: LayoutBox): void {
     stroke_rect(c, rect, root.style.border.thick.top, root.style.border.color)
     //draw children
     root.children.forEach((ch) => {
-        if (ch.type === 'box') draw_box(c, ch as LayoutBox)
+        if (ch.type === 'box') draw_box(c, ch as LayoutBox, cache)
         if (ch.type === 'line') draw_line(c, ch as LineBox)
+        if (ch.type === 'image') draw_image(c, ch as ImageBox, cache)
     })
     if (root.style.display === "list-item") {
         fill_text(c, "\u2022", rect.middle_left().add(new BPoint(0,5)), "black")

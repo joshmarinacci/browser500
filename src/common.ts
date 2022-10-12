@@ -204,7 +204,68 @@ export class LineBox extends Box {
         this.runs = []
     }
 }
+export class ImageBox extends Box {
+    element: BElement
+    style: BlockStyle
+    src: string;
+    constructor(element:BElement, src:string, position:BPoint,size,style:BlockStyle) {
+        super('image',position,size)
+        this.src = src
+        this.element = element
+        this.style = style
+    }
+}
 
+export class ImageCache {
+    listeners:any[]
+    private base: string;
+    images:Map<string,any>
+    constructor(base:string) {
+        this.base = base
+        this.listeners = []
+        this.images = new Map()
+    }
+    addEventListener(type,cb) {
+        this.listeners.push(cb)
+    }
+    load(src:string) {
+        console.log("loading",src)
+        if(this.images.has(src)) {
+            log("already in the cache",src)
+            return
+        }
+        let url = new URL(src,this.base)
+        let img = document.createElement('img')
+        img.src = url.href
+        img.addEventListener('load',() => {
+            console.log("loaded",img.complete)
+            this.fire('loaded',img)
+        })
+        this.images.set(src,img)
+    }
+
+    is_loaded(src: string) {
+        if(!this.images.has(src)) return false
+        let img = this.images.get(src)
+        return img.complete
+    }
+
+    draw_image(c: CanvasRenderingContext2D, bounds: BRect, src: string) {
+        let img = this.images.get(src)
+        if(img) {
+            c.drawImage(img,bounds.x,bounds.y,bounds.w,bounds.h)
+        }
+    }
+
+    private fire(loaded: string, img: HTMLImageElement) {
+        this.listeners.forEach(cb => cb(img))
+    }
+
+    getImageSize(src: string) {
+        let img = this.images.get(src)
+        return new BSize(img.width,img.height)
+    }
+}
 export function log(...args: any[]) {
     console.log("LOG",...args)
 }

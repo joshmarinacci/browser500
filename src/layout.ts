@@ -1,4 +1,4 @@
-import {BElement, BInsets, BNode, BPoint, BRect, BSize, BText, LayoutBox, LineBox, RunBox, TextStyle} from "./common";
+import {BElement, BInsets, BNode, Box, BPoint, BRect, BSize, BText, ImageBox, ImageCache, LayoutBox, LineBox, RunBox, TextStyle} from "./common";
 import {BStyleSet} from "./style";
 
 function log(...args: any[]) {
@@ -52,9 +52,9 @@ class WhitespaceIterator {
 
 }
 
-export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement):LayoutBox {
+export function layout(element:BElement, styles:BStyleSet, canvas:HTMLCanvasElement, cache:ImageCache):LayoutBox {
     let canvas_size:BSize = new BSize(canvas.width, canvas.height)
-    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), canvas.getContext("2d"))
+    return box_box_layout(element, styles, canvas_size, new BPoint(0,0), canvas.getContext("2d"),cache)
 }
 
 function calculate_layout_type(element: BElement, styles:BStyleSet):"inline"|"block" {
@@ -69,8 +69,27 @@ function calculate_layout_type(element: BElement, styles:BStyleSet):"inline"|"bl
     return (block_count === 0)?"inline":"block"
 }
 
-function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D):LayoutBox {
-    // log("layout of",element.name,'at',position)
+function image_layout(element: BElement, body_bounds: BRect, styles: BStyleSet, min: BPoint, ctx: CanvasRenderingContext2D, cache:ImageCache) {
+    let style = styles.lookup_block_style(element.name)
+    let src = element.atts['src']
+    let size = new BSize(50,50)
+    if(src) {
+        // if loaded use real size
+        if(cache.is_loaded(src)) {
+            size = cache.getImageSize(src)
+        } else {
+            // if not loaded use 50,50 and start loading
+            cache.load(src)
+        }
+    }
+    // if atts set, use atts
+    if(element.atts['width'] && element.atts['height']) {
+        size = new BSize(parseInt(element.atts['width']),parseInt(element.atts['height']))
+    }
+    return new ImageBox(element, src, min, size, style)
+}
+
+function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize, position: BPoint, ctx: CanvasRenderingContext2D, cache:ImageCache):LayoutBox {
     let html_box:LayoutBox = make_box_from_style(element, styles, canvas_size, position)
     let inset = html_box.style.margin.add(html_box.style.border.thick).add(html_box.style.padding)
     let body_bounds:BRect = html_box.size.toRect().subtract_inset(inset)
@@ -89,9 +108,13 @@ function box_box_layout(element: BElement, styles: BStyleSet, canvas_size: BSize
         let layout_context = calculate_layout_type(elem,styles)
         if(style.display === 'none') return
         if(style.display === "inline") return console.warn("not doing inline yet. :(")
-        let box:LayoutBox
-        if(layout_context === 'inline') box = box_text_layout(elem,body_bounds, styles,lowest, ctx)
-        if(layout_context === 'block')  box = box_box_layout(elem, styles, body_bounds.size(), lowest, ctx)
+        let box:Box
+        if(elem.name === 'img') {
+            box = image_layout(elem,body_bounds,styles,lowest,ctx, cache)
+        } else {
+            if (layout_context === 'inline') box = box_text_layout(elem, body_bounds, styles, lowest, ctx)
+            if (layout_context === 'block') box = box_box_layout(elem, styles, body_bounds.size(), lowest, ctx, cache)
+        }
         lowest = new BPoint(lowest.x, box.position.y + box.size.h)
         html_box.children.push(box)
     })
